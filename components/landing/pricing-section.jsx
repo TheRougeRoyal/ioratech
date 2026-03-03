@@ -27,8 +27,8 @@ const plans = [
   {
     name: "Professional",
     description: "For mid-market companies with active programs",
-    price: "Let’s Talk",
-    period: "per year",
+    price: "Request Pricing",
+    period: "",
     features: [
       "Full Scope 1, 2, & 3 tracking",
       "Scenario analysis (3 scenarios)",
@@ -38,7 +38,7 @@ const plans = [
       "API access",
       "Quarterly reviews",
     ],
-    cta: "Let’s Talk",
+    cta: "Request Pricing",
     popular: true,
     variant: "default",
   },
@@ -46,7 +46,7 @@ const plans = [
     name: "Enterprise",
     description: "For large organizations with complex operations",
     price: "Talk to Sales",
-    period: "per year",
+    period: "",
     features: [
       "Everything in Professional",
       "Unlimited scenarios",

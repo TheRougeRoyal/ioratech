@@ -34,18 +34,15 @@ export function Navbar() {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-sm"
+          ? "bg-background/90 backdrop-blur-md border-b border-border"
           : "bg-transparent"
       }`}
     >
       <nav className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center space-x-2.5 group">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground dark:bg-primary"
-          >
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground dark:bg-primary">
             <span className="text-lg font-bold text-background dark:text-primary-foreground">I</span>
-          </motion.div>
+          </div>
           <span className="text-xl font-semibold tracking-tight">Iora</span>
         </Link>
 
@@ -64,17 +61,15 @@ export function Navbar() {
 
         <div className="flex items-center space-x-3">
           {mounted && (
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="h-9 w-9 rounded-lg"
-              >
-                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              </Button>
-            </motion.div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="h-9 w-9 rounded-lg"
+            >
+              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            </Button>
           )}
           <Link href="/login" className="hidden md:block">
             <Button variant="ghost" size="sm" className="font-medium">
@@ -82,11 +77,9 @@ export function Navbar() {
             </Button>
           </Link>
           <Link href="/request-access" className="hidden md:block">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button size="sm" className="font-medium shadow-lg shadow-primary/20">
-                Request Access
-              </Button>
-            </motion.div>
+            <Button size="sm" className="font-medium">
+              Request Access
+            </Button>
           </Link>
           <Button
             variant="ghost"

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,20 +8,12 @@ import { cn } from "@/lib/utils";
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    setMobileSidebarOpen(false);
-  }, [pathname]);
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardSidebar
-        mobileOpen={mobileSidebarOpen}
-        onMobileOpenChange={setMobileSidebarOpen}
-      />
+      <DashboardSidebar />
       <div className={cn("transition-all duration-200", "pl-0 lg:pl-64")}>
-        <DashboardHeader onOpenMobileSidebar={() => setMobileSidebarOpen(true)} />
+        <DashboardHeader />
         <AnimatePresence mode="wait">
           <motion.main
             key={pathname}
