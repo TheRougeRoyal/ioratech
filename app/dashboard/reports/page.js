@@ -62,6 +62,30 @@ const reports = [
   },
 ];
 
+const reportTemplates = [
+  {
+    id: "tpl-1",
+    name: "Board Climate Brief",
+    description: "Executive summary of emissions, risk signals, and mitigation actions.",
+    frameworks: ["TCFD", "ISSB"],
+    estimatedTime: "20 min",
+  },
+  {
+    id: "tpl-2",
+    name: "CSRD Climate Package",
+    description: "Structured ESRS E1 disclosure pack with policy, metrics, and targets.",
+    frameworks: ["CSRD", "ESRS"],
+    estimatedTime: "35 min",
+  },
+  {
+    id: "tpl-3",
+    name: "Supplier Scope 3 Digest",
+    description: "Category-level Scope 3 trends, confidence bands, and data quality notes.",
+    frameworks: ["GHG Protocol"],
+    estimatedTime: "25 min",
+  },
+];
+
 const container = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -73,6 +97,9 @@ const item = {
 };
 
 export default function ReportsPage() {
+  const publishedReports = reports.filter((report) => report.status === "published");
+  const draftReports = reports.filter((report) => report.status !== "published");
+
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
       <motion.div variants={item} className="flex items-center justify-between">
@@ -174,16 +201,89 @@ export default function ReportsPage() {
           ))}
         </TabsContent>
 
-        <TabsContent value="published">
-          <p className="text-muted-foreground">Published reports will appear here.</p>
+        <TabsContent value="published" className="space-y-4">
+          {publishedReports.map((report) => (
+            <Card key={report.id} className="border-border/50">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="h-4 w-4 text-emerald-500" />
+                      <h3 className="font-medium">{report.name}</h3>
+                    </div>
+                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center"><Calendar className="h-3 w-3 mr-1" />{report.date}</span>
+                      <span className="inline-flex items-center"><Download className="h-3 w-3 mr-1" />{report.downloads} downloads</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {report.frameworks.map((framework) => (
+                        <Badge key={framework} variant="secondary" className="text-[10px]">
+                          {framework}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                    Open
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </TabsContent>
 
-        <TabsContent value="draft">
-          <p className="text-muted-foreground">Draft reports will appear here.</p>
+        <TabsContent value="draft" className="space-y-4">
+          {draftReports.map((report) => (
+            <Card key={report.id} className="border-border/50">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">{report.name}</h3>
+                    <p className="text-xs text-muted-foreground">{report.type}</p>
+                  </div>
+                  <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950">
+                    {report.status === "draft" ? "Draft" : "In Review"}
+                  </Badge>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="inline-flex items-center"><Clock className="h-3 w-3 mr-1" />Last edited {report.date}</span>
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                    Continue editing
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </TabsContent>
 
         <TabsContent value="templates">
-          <p className="text-muted-foreground">Report templates will appear here.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {reportTemplates.map((template) => (
+              <Card key={template.id} className="border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{template.name}</CardTitle>
+                  <CardDescription>{template.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {template.frameworks.map((framework) => (
+                      <Badge key={framework} variant="outline" className="text-[10px]">
+                        {framework}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="inline-flex items-center"><Clock className="h-3 w-3 mr-1" />{template.estimatedTime}</span>
+                    <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
+                      Use Template
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </TabsContent>
       </Tabs>
 
