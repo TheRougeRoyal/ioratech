@@ -10,8 +10,8 @@ const industries = [
     id: "corporations",
     icon: Building2,
     title: "Corporations",
-    description: "Track and reduce emissions across operations and supply chains. Meet disclosure requirements with confidence.",
-    features: ["Supply chain emissions mapping", "Net-zero pathway planning", "Board-ready dashboards"],
+    description: "Bring operations and supplier emissions into one decision flow, then align reduction work to annual planning cycles.",
+    features: ["Supplier emissions mapping", "Reduction roadmap planning", "Executive-ready summaries"],
     metrics: { clients: "320+", emissions: "1.2B tCO2e", reduction: "18% avg" },
     chartData: [65, 62, 58, 55, 52, 48, 45, 42],
   },
@@ -19,8 +19,8 @@ const industries = [
     id: "investment",
     icon: TrendingUp,
     title: "Investment Funds",
-    description: "Assess climate risk exposure across portfolios. Integrate ESG factors with quantitative rigor.",
-    features: ["Portfolio carbon footprint", "Climate VaR analysis", "Engagement tracking"],
+    description: "Evaluate climate exposure across portfolios and tie insights directly to stewardship and allocation decisions.",
+    features: ["Portfolio footprint", "Climate VaR analysis", "Engagement progress tracking"],
     metrics: { aum: "$2.8T", portfolios: "1,200+", coverage: "45,000 issuers" },
     chartData: [45, 52, 48, 55, 62, 58, 65, 68],
   },
@@ -28,8 +28,8 @@ const industries = [
     id: "infrastructure",
     icon: Factory,
     title: "Infrastructure",
-    description: "Manage physical climate risks to assets. Plan resilient investments for long-term value.",
-    features: ["Asset-level risk mapping", "Adaptation planning", "Insurance optimization"],
+    description: "Understand where climate hazards can affect critical assets and prioritize adaptation spend with clear trade-offs.",
+    features: ["Asset-level risk mapping", "Adaptation planning", "Insurance strategy support"],
     metrics: { assets: "8,500+", value: "$420B", scenarios: "40+" },
     chartData: [72, 68, 65, 62, 58, 55, 52, 48],
   },
@@ -37,8 +37,8 @@ const industries = [
     id: "public",
     icon: Landmark,
     title: "Public Sector",
-    description: "Model policy impacts and track effectiveness. Support evidence-based climate policy development.",
-    features: ["Policy impact modeling", "Cross-jurisdiction analysis", "Public reporting tools"],
+    description: "Model policy options, compare outcomes across regions, and publish transparent progress updates for stakeholders.",
+    features: ["Policy impact modeling", "Cross-jurisdiction comparison", "Public reporting tools"],
     metrics: { jurisdictions: "85+", policies: "2,400+", impact: "320M people" },
     chartData: [35, 42, 48, 52, 58, 62, 65, 68],
   },
@@ -60,7 +60,7 @@ export function IndustriesSection() {
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Built for Your Industry</h2>
           <p className="text-lg text-muted-foreground">
-            Tailored solutions for organizations that require institutional-grade climate intelligence.
+            Teams in different sectors face different constraints, so the workflows adapt to your operating model.
           </p>
         </motion.div>
 
@@ -103,7 +103,7 @@ export function IndustriesSection() {
                       transition={{ delay: i * 0.1 }}
                       className="flex items-center text-sm"
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500 mr-3" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary mr-3" />
                       {feature}
                     </motion.li>
                   ))}
@@ -129,12 +129,12 @@ export function IndustriesSection() {
                 <div className="bg-card rounded-xl border border-border/50 p-6 shadow-lg">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <div className="text-sm font-medium">Performance Overview</div>
-                      <div className="text-xs text-muted-foreground">Last 8 quarters</div>
+                      <div className="text-sm font-medium">Example outcome view</div>
+                      <div className="text-xs text-muted-foreground">Illustrative trend over 8 quarters</div>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <div className="h-2 w-2 rounded-full bg-blue-500" />
-                      <span className="text-xs text-muted-foreground">Live</span>
+                      <div className="h-2 w-2 rounded-full bg-primary" />
+                      <span className="text-xs text-muted-foreground">Snapshot</span>
                     </div>
                   </div>
 
@@ -146,7 +146,7 @@ export function IndustriesSection() {
                         initial={{ height: 0 }}
                         animate={{ height: `${value}%` }}
                         transition={{ delay: i * 0.05, duration: 0.4 }}
-                        className="flex-1 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+                        className="flex-1 bg-gradient-to-t from-primary to-primary/70 rounded-t opacity-80 hover:opacity-100 transition-opacity"
                       />
                     ))}
                   </div>
@@ -154,15 +154,15 @@ export function IndustriesSection() {
                   <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
                     <div className="text-center">
                       <div className="text-lg font-bold text-emerald-500">-12%</div>
-                      <div className="text-[10px] text-muted-foreground">Emissions</div>
+                      <div className="text-[10px] text-muted-foreground">Emission trend</div>
                     </div>
                     <div className="text-center">
                       <div className="text-lg font-bold">A-</div>
-                      <div className="text-[10px] text-muted-foreground">Rating</div>
+                      <div className="text-[10px] text-muted-foreground">Readiness score</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold text-blue-500">98%</div>
-                      <div className="text-[10px] text-muted-foreground">Coverage</div>
+                      <div className="text-lg font-bold text-primary">98%</div>
+                      <div className="text-[10px] text-muted-foreground">Data coverage</div>
                     </div>
                   </div>
                 </div>
