@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
 import { Database, Cpu, FileOutput, ArrowRight } from "lucide-react";
 
 const steps = [
@@ -32,8 +31,6 @@ const steps = [
 ];
 
 export function HowItWorksSection() {
-  const [activeStep, setActiveStep] = useState(0);
-
   return (
     <section id="how-it-works" className="py-24 md:py-32">
       <div className="container">
@@ -46,78 +43,43 @@ export function HowItWorksSection() {
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">How Iora Works</h2>
           <p className="text-lg text-muted-foreground">
-            From raw data to strategic decisions in three integrated steps.
+            A practical three-step flow from raw inputs to decisions your teams can defend.
           </p>
         </motion.div>
 
-        {/* Desktop View */}
-        <div className="hidden lg:block">
-          <div className="relative">
-            {/* Progress Line */}
-            <div className="absolute top-16 left-0 right-0 h-0.5 bg-border">
-              <motion.div
-                className="h-full bg-primary"
-                initial={{ width: "0%" }}
-                animate={{ width: `${((activeStep + 1) / steps.length) * 100}%` }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-8">
-              {steps.map((step, index) => (
-                <motion.div
-                  key={step.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.2 }}
-                  className="relative"
-                  onMouseEnter={() => setActiveStep(index)}
-                >
-                  {/* Step Indicator */}
-                  <motion.div
-                    animate={{
-                      scale: activeStep === index ? 1.1 : 1,
-                      backgroundColor: activeStep >= index ? "hsl(var(--primary))" : "hsl(var(--muted))",
-                    }}
-                    className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center mb-6 border-4 border-background transition-colors"
+        <div className="hidden lg:grid grid-cols-3 gap-8">
+          {steps.map((step, index) => (
+            <motion.div
+              key={step.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.15 }}
+              className="relative rounded-xl border border-border/60 bg-card/40 p-6"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                <step.icon className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">{step.number}</span>
+              <h3 className="text-xl font-semibold mt-1 mb-3">{step.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">{step.description}</p>
+              <div className="flex flex-wrap gap-2">
+                {step.details.map((detail) => (
+                  <span
+                    key={detail}
+                    className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground"
                   >
-                    <step.icon className={`h-5 w-5 ${activeStep >= index ? "text-primary-foreground" : "text-muted-foreground"}`} />
-                  </motion.div>
-
-                  <motion.div
-                    animate={{ opacity: activeStep === index ? 1 : 0.6 }}
-                    className="transition-opacity"
-                  >
-                    <span className="text-xs font-medium text-muted-foreground">{step.number}</span>
-                    <h3 className="text-xl font-semibold mt-1 mb-3">{step.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                      {step.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {step.details.map((detail) => (
-                        <span
-                          key={detail}
-                          className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground"
-                        >
-                          {detail}
-                        </span>
-                      ))}
-                    </div>
-                  </motion.div>
-
-                  {index < steps.length - 1 && (
-                    <motion.div
-                      animate={{ opacity: activeStep > index ? 1 : 0.3 }}
-                      className="absolute top-6 left-full -translate-x-1/2 hidden lg:block"
-                    >
-                      <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                    </motion.div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </div>
+                    {detail}
+                  </span>
+                ))}
+              </div>
+              {index < steps.length - 1 && (
+                <div className="absolute top-10 -right-4 hidden lg:block">
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                </div>
+              )}
+            </motion.div>
+          ))}
         </div>
 
         {/* Mobile View */}

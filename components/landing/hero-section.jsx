@@ -8,7 +8,7 @@ import { DashboardPreview } from "./dashboard-preview";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
+    <section className="relative min-h-[92vh] flex items-center pt-20 pb-16 overflow-hidden">
       {/* Animated Grid Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-muted/50 via-background to-background" />
@@ -49,11 +49,8 @@ export function HeroSection() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-muted/80 border border-border/50 mb-6"
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span className="text-xs font-medium text-muted-foreground">Platform Active</span>
+              <span className="inline-flex rounded-full h-2 w-2 bg-primary" />
+              <span className="text-xs font-medium text-muted-foreground">Built with climate, finance, and risk teams</span>
             </motion.div>
 
             <motion.h1
@@ -62,9 +59,9 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-[1.1]"
             >
-              Operational{" "}
+              Climate intelligence{" "}
               <span className="relative">
-                <span className="relative z-10">Climate</span>
+                <span className="relative z-10">that teams actually use</span>
                 <motion.span
                   initial={{ width: 0 }}
                   animate={{ width: "100%" }}
@@ -72,8 +69,7 @@ export function HeroSection() {
                   className="absolute bottom-2 left-0 h-3 bg-blue-500/20 dark:bg-blue-400/20 -z-0"
                 />
               </span>
-              <br />
-              Intelligence.
+              .
             </motion.h1>
 
             <motion.p
@@ -82,8 +78,8 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-lg text-muted-foreground mb-8 leading-relaxed"
             >
-              Strategic carbon modeling, regulatory foresight, and enterprise-grade analytics.
-              Built for organizations that take climate risk seriously.
+              Iora brings emissions, risk, and compliance work into one place so teams can move
+              from manual reporting to better decisions, faster.
             </motion.p>
 
             <motion.div
@@ -92,19 +88,19 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="flex flex-col sm:flex-row items-start sm:items-center gap-4"
             >
-              <Link href="/request-access">
+              <Link href="/dashboard">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button size="lg" className="h-12 px-8 text-base font-medium shadow-lg shadow-primary/20">
-                    Request Access
+                  <Button size="lg" className="h-12 px-8 text-base font-medium">
+                    See the dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </motion.div>
               </Link>
-              <Link href="/dashboard">
+              <Link href="/request-access">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button variant="outline" size="lg" className="h-12 px-8 text-base font-medium">
                     <Play className="mr-2 h-4 w-4" />
-                    View Platform
+                    Request access
                   </Button>
                 </motion.div>
               </Link>
@@ -114,21 +110,19 @@ export function HeroSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="mt-12 flex items-center space-x-8"
+              className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-5"
             >
               <div>
-                <div className="text-2xl font-bold">500+</div>
-                <div className="text-sm text-muted-foreground">Enterprise clients</div>
+                <div className="text-sm font-semibold">Connect your sources</div>
+                <div className="text-sm text-muted-foreground">Utilities, ERP, and supplier data in one workflow.</div>
               </div>
-              <div className="h-10 w-px bg-border" />
               <div>
-                <div className="text-2xl font-bold">2.4B</div>
-                <div className="text-sm text-muted-foreground">tCO2e tracked</div>
+                <div className="text-sm font-semibold">Model real trade-offs</div>
+                <div className="text-sm text-muted-foreground">Compare pathways with financial and risk impact side by side.</div>
               </div>
-              <div className="h-10 w-px bg-border" />
               <div>
-                <div className="text-2xl font-bold">99.9%</div>
-                <div className="text-sm text-muted-foreground">Uptime SLA</div>
+                <div className="text-sm font-semibold">Report with confidence</div>
+                <div className="text-sm text-muted-foreground">Export disclosure-ready outputs without spreadsheet cleanup.</div>
               </div>
             </motion.div>
           </motion.div>

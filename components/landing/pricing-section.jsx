@@ -27,7 +27,7 @@ const plans = [
   {
     name: "Professional",
     description: "For mid-market companies with active programs",
-    price: "Custom",
+    price: "Request pricing",
     period: "per year",
     features: [
       "Full Scope 1, 2, & 3 tracking",
@@ -45,7 +45,7 @@ const plans = [
   {
     name: "Enterprise",
     description: "For large organizations with complex operations",
-    price: "Custom",
+    price: "Talk to sales",
     period: "per year",
     features: [
       "Everything in Professional",
@@ -74,9 +74,10 @@ export function PricingSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Simple, Transparent Pricing</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Start with the right level of support</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Choose the plan that fits your organization. All plans include implementation support.
+            Most teams begin with a short discovery phase, then choose a plan based on reporting scope,
+            data complexity, and team size.
           </p>
         </motion.div>
 
