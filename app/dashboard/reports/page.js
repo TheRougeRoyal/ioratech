@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { motion } from "framer-motion";
 import {
   Download,
@@ -17,6 +20,8 @@ import {
   Share2,
   MoreHorizontal,
   Filter,
+  Inbox,
+  AlertCircle,
 } from "lucide-react";
 
 const reports = [
@@ -96,9 +101,81 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
+function ReportsLoadingState({ rows = 3 }) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: rows }).map((_, index) => (
+        <Card key={index} className="border-border/50">
+          <CardContent className="p-6 space-y-3">
+            <Skeleton className="h-5 w-56" />
+            <Skeleton className="h-4 w-36" />
+            <div className="flex gap-2 pt-1">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-16" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function ReportsEmptyState({ title, description }) {
+  return (
+    <Card className="border-border/50 border-dashed">
+      <CardContent className="p-10 text-center">
+        <Inbox className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
+        <h3 className="text-base font-medium">{title}</h3>
+        <p className="text-sm text-muted-foreground mt-1">{description}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ReportsErrorState({ onRetry }) {
+  return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>Unable to load reports</AlertTitle>
+      <AlertDescription className="flex items-center justify-between gap-4">
+        <span>There was a temporary issue fetching report data. Please try again.</span>
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          Retry
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export default function ReportsPage() {
-  const publishedReports = reports.filter((report) => report.status === "published");
-  const draftReports = reports.filter((report) => report.status !== "published");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reportItems, setReportItems] = useState([]);
+  const [templateItems, setTemplateItems] = useState([]);
+
+  const fetchReportData = () => {
+    setIsLoading(true);
+    setLoadError(false);
+
+    setTimeout(() => {
+      try {
+        setReportItems(reports);
+        setTemplateItems(reportTemplates);
+      } catch {
+        setLoadError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 450);
+  };
+
+  useEffect(() => {
+    fetchReportData();
+  }, []);
+
+  const publishedReports = reportItems.filter((report) => report.status === "published");
+  const draftReports = reportItems.filter((report) => report.status !== "published");
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
@@ -128,7 +205,16 @@ export default function ReportsPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {reports.map((report, index) => (
+          {loadError ? (
+            <ReportsErrorState onRetry={fetchReportData} />
+          ) : isLoading ? (
+            <ReportsLoadingState rows={3} />
+          ) : reportItems.length === 0 ? (
+            <ReportsEmptyState
+              title="No reports yet"
+              description="Generate your first report to start tracking and sharing disclosures."
+            />
+          ) : reportItems.map((report, index) => (
             <motion.div
               key={report.id}
               initial={{ opacity: 0, y: 20 }}
@@ -202,7 +288,16 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="published" className="space-y-4">
-          {publishedReports.map((report) => (
+          {loadError ? (
+            <ReportsErrorState onRetry={fetchReportData} />
+          ) : isLoading ? (
+            <ReportsLoadingState rows={2} />
+          ) : publishedReports.length === 0 ? (
+            <ReportsEmptyState
+              title="No published reports"
+              description="Finalize and publish a report to make it available for download."
+            />
+          ) : publishedReports.map((report) => (
             <Card key={report.id} className="border-border/50">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between">
@@ -234,7 +329,16 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="draft" className="space-y-4">
-          {draftReports.map((report) => (
+          {loadError ? (
+            <ReportsErrorState onRetry={fetchReportData} />
+          ) : isLoading ? (
+            <ReportsLoadingState rows={2} />
+          ) : draftReports.length === 0 ? (
+            <ReportsEmptyState
+              title="No drafts in progress"
+              description="Start a report draft to collaborate before publishing."
+            />
+          ) : draftReports.map((report) => (
             <Card key={report.id} className="border-border/50">
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-center justify-between">
@@ -259,8 +363,18 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="templates">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {reportTemplates.map((template) => (
+          {loadError ? (
+            <ReportsErrorState onRetry={fetchReportData} />
+          ) : isLoading ? (
+            <ReportsLoadingState rows={3} />
+          ) : templateItems.length === 0 ? (
+            <ReportsEmptyState
+              title="No templates available"
+              description="Templates will appear here once your reporting library is configured."
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {templateItems.map((template) => (
               <Card key={template.id} className="border-border/50">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">{template.name}</CardTitle>
@@ -282,8 +396,9 @@ export default function ReportsPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 

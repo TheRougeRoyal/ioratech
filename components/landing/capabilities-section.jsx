@@ -2,15 +2,12 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { useState } from "react";
 import {
   Activity,
-  BarChart3,
   FileText,
   Globe,
   Shield,
   Sliders,
-  ChevronRight,
 } from "lucide-react";
 
 const capabilities = [
@@ -57,10 +54,8 @@ const capabilities = [
 ];
 
 export function CapabilitiesSection() {
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-
   return (
-    <section id="capabilities" className="py-24 md:py-32 relative overflow-hidden">
+    <section id="capabilities" className="py-20 md:py-28 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/30 to-background" />
       </div>
@@ -71,7 +66,7 @@ export function CapabilitiesSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl mb-16"
+          className="max-w-2xl mb-12 md:mb-14"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Core Capabilities</h2>
           <p className="text-lg text-muted-foreground">
@@ -88,53 +83,31 @@ export function CapabilitiesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
             >
-              <Card className={`h-full border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 cursor-pointer overflow-hidden ${
-                hoveredIndex === index ? "border-border shadow-lg scale-[1.02]" : "hover:border-border/80"
-              }`}>
+              <Card className="h-full border-border/50 bg-card/70">
                 <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <motion.div
-                      animate={{ scale: hoveredIndex === index ? 1.1 : 1 }}
-                      className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"
-                    >
+                  <div className="flex items-center">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                       <capability.icon className="h-5 w-5 text-primary" />
-                    </motion.div>
-                    <motion.div
-                      animate={{ x: hoveredIndex === index ? 0 : 10, opacity: hoveredIndex === index ? 1 : 0 }}
-                    >
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </motion.div>
+                    </div>
                   </div>
                   <CardTitle className="text-base mt-4">{capability.title}</CardTitle>
                   <CardDescription className="text-sm">{capability.shortDesc}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ 
-                      height: hoveredIndex === index ? "auto" : 0,
-                      opacity: hoveredIndex === index ? 1 : 0
-                    }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {capability.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {capability.metrics.map((metric) => (
-                        <span
-                          key={metric}
-                          className="text-[10px] font-medium px-2 py-1 rounded-full bg-muted text-muted-foreground"
-                        >
-                          {metric}
-                        </span>
-                      ))}
-                    </div>
-                  </motion.div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {capability.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {capability.metrics.map((metric) => (
+                      <span
+                        key={metric}
+                        className="text-[10px] font-medium px-2 py-1 rounded-full bg-muted text-muted-foreground"
+                      >
+                        {metric}
+                      </span>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>

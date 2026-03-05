@@ -6,27 +6,57 @@ import { NextResponse } from 'next/server'
 let client
 let db
 
+function getRequiredEnv(name) {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`)
+  }
+  return value
+}
+
+function getAllowedOrigins() {
+  const origins = process.env.CORS_ORIGINS
+  if (!origins) return ['*']
+  return origins.split(',').map((origin) => origin.trim()).filter(Boolean)
+}
+
+function resolveCorsOrigin(request) {
+  const allowedOrigins = getAllowedOrigins()
+  if (allowedOrigins.includes('*')) return '*'
+
+  const requestOrigin = request.headers.get('origin')
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    return requestOrigin
+  }
+
+  return allowedOrigins[0]
+}
+
 async function connectToMongo() {
   if (!client) {
-    client = new MongoClient(process.env.MONGO_URL)
+    const mongoUrl = getRequiredEnv('MONGO_URL')
+    const dbName = getRequiredEnv('DB_NAME')
+
+    client = new MongoClient(mongoUrl)
     await client.connect()
-    db = client.db(process.env.DB_NAME)
+    db = client.db(dbName)
   }
   return db
 }
 
 // Helper function to handle CORS
-function handleCORS(response) {
-  response.headers.set('Access-Control-Allow-Origin', process.env.CORS_ORIGINS || '*')
+function handleCORS(response, request) {
+  response.headers.set('Access-Control-Allow-Origin', resolveCorsOrigin(request))
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   response.headers.set('Access-Control-Allow-Credentials', 'true')
+  response.headers.set('Vary', 'Origin')
   return response
 }
 
 // OPTIONS handler for CORS
-export async function OPTIONS() {
-  return handleCORS(new NextResponse(null, { status: 200 }))
+export async function OPTIONS(request) {
+  return handleCORS(new NextResponse(null, { status: 200 }), request)
 }
 
 // Route handler function
@@ -40,11 +70,11 @@ async function handleRoute(request, { params }) {
 
     // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
     if (route === '/root' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
+      return handleCORS(NextResponse.json({ message: "Hello World" }), request)
     }
     // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
     if (route === '/' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
+      return handleCORS(NextResponse.json({ message: "Hello World" }), request)
     }
 
     // Status endpoints - POST /api/status
@@ -55,7 +85,7 @@ async function handleRoute(request, { params }) {
         return handleCORS(NextResponse.json(
           { error: "client_name is required" }, 
           { status: 400 }
-        ))
+        ), request)
       }
 
       const statusObj = {
@@ -65,7 +95,7 @@ async function handleRoute(request, { params }) {
       }
 
       await db.collection('status_checks').insertOne(statusObj)
-      return handleCORS(NextResponse.json(statusObj))
+      return handleCORS(NextResponse.json(statusObj), request)
     }
 
     // Status endpoints - GET /api/status
@@ -78,21 +108,21 @@ async function handleRoute(request, { params }) {
       // Remove MongoDB's _id field from response
       const cleanedStatusChecks = statusChecks.map(({ _id, ...rest }) => rest)
       
-      return handleCORS(NextResponse.json(cleanedStatusChecks))
+      return handleCORS(NextResponse.json(cleanedStatusChecks), request)
     }
 
     // Route not found
     return handleCORS(NextResponse.json(
       { error: `Route ${route} not found` }, 
       { status: 404 }
-    ))
+    ), request)
 
   } catch (error) {
     console.error('API Error:', error)
     return handleCORS(NextResponse.json(
-      { error: "Internal server error" }, 
+      { error: error.message || "Internal server error" }, 
       { status: 500 }
-    ))
+    ), request)
   }
 }
 

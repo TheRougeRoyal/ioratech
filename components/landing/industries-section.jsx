@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Building2, TrendingUp, Factory, Landmark } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -49,14 +49,14 @@ export function IndustriesSection() {
   const activeIndustry = industries.find((i) => i.id === activeTab);
 
   return (
-    <section id="industries" className="py-24 md:py-32 bg-muted/30">
+    <section id="industries" className="py-20 md:py-28 bg-muted/30">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl mb-12"
+          className="max-w-2xl mb-12 md:mb-14"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Built for Your Industry</h2>
           <p className="text-lg text-muted-foreground">
@@ -78,97 +78,67 @@ export function IndustriesSection() {
             ))}
           </TabsList>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="grid lg:grid-cols-2 gap-8 items-center"
-            >
-              {/* Content */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-2xl font-semibold mb-3">{activeIndustry.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{activeIndustry.description}</p>
-                </div>
-
-                <ul className="space-y-3">
-                  {activeIndustry.features.map((feature, i) => (
-                    <motion.li
-                      key={feature}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="flex items-center text-sm"
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500 mr-3" />
-                      {feature}
-                    </motion.li>
-                  ))}
-                </ul>
-
-                <div className="flex items-center space-x-6 pt-4">
-                  {Object.entries(activeIndustry.metrics).map(([key, value]) => (
-                    <div key={key}>
-                      <div className="text-xl font-bold">{value}</div>
-                      <div className="text-xs text-muted-foreground capitalize">{key}</div>
-                    </div>
-                  ))}
-                </div>
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-2xl font-semibold mb-3">{activeIndustry.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{activeIndustry.description}</p>
               </div>
 
-              {/* Analytics Preview */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-                className="relative"
-              >
-                <div className="bg-card rounded-xl border border-border/50 p-6 shadow-lg">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <div className="text-sm font-medium">Performance Overview</div>
-                      <div className="text-xs text-muted-foreground">Last 8 quarters</div>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="h-2 w-2 rounded-full bg-blue-500" />
-                      <span className="text-xs text-muted-foreground">Live</span>
-                    </div>
-                  </div>
+              <ul className="space-y-3">
+                {activeIndustry.features.map((feature) => (
+                  <li key={feature} className="flex items-center text-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary/60 mr-3" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
 
-                  {/* Chart */}
-                  <div className="flex items-end justify-between h-32 gap-2 mb-4">
-                    {activeIndustry.chartData.map((value, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ height: 0 }}
-                        animate={{ height: `${value}%` }}
-                        transition={{ delay: i * 0.05, duration: 0.4 }}
-                        className="flex-1 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
-                      />
-                    ))}
+              <div className="flex items-center space-x-6 pt-4">
+                {Object.entries(activeIndustry.metrics).map(([key, value]) => (
+                  <div key={key}>
+                    <div className="text-xl font-bold">{value}</div>
+                    <div className="text-xs text-muted-foreground capitalize">{key}</div>
                   </div>
+                ))}
+              </div>
+            </div>
 
-                  <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-emerald-500">-12%</div>
-                      <div className="text-[10px] text-muted-foreground">Emissions</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold">A-</div>
-                      <div className="text-[10px] text-muted-foreground">Rating</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-blue-500">98%</div>
-                      <div className="text-[10px] text-muted-foreground">Coverage</div>
-                    </div>
-                  </div>
+            <div className="bg-card rounded-xl border border-border/50 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <div className="text-sm font-medium">Performance Overview</div>
+                  <div className="text-xs text-muted-foreground">Last 8 quarters</div>
                 </div>
-              </motion.div>
-            </motion.div>
-          </AnimatePresence>
+                <span className="text-xs text-muted-foreground">Updated quarterly</span>
+              </div>
+
+              <div className="flex items-end justify-between h-32 gap-2 mb-4">
+                {activeIndustry.chartData.map((value, i) => (
+                  <div
+                    key={i}
+                    style={{ height: `${value}%` }}
+                    className="flex-1 bg-primary/25 rounded-t"
+                  />
+                ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">-12%</div>
+                  <div className="text-[10px] text-muted-foreground">Emissions</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold">A-</div>
+                  <div className="text-[10px] text-muted-foreground">Rating</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold">98%</div>
+                  <div className="text-[10px] text-muted-foreground">Coverage</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </Tabs>
       </div>
     </section>

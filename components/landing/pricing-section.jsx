@@ -65,14 +65,14 @@ const plans = [
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="py-24 md:py-32">
+    <section id="pricing" className="py-20 md:py-28">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-14"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Start with the right level of support</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -89,19 +89,18 @@ export function PricingSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ y: -4 }}
               className="relative"
             >
               <Card
-                className={`h-full flex flex-col transition-shadow duration-300 ${
+                className={`h-full flex flex-col ${
                   plan.popular
-                    ? "border-primary shadow-xl shadow-primary/10"
-                    : "border-border/50 hover:shadow-lg"
+                    ? "border-primary"
+                    : "border-border/50"
                 }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="shadow-lg">Most Popular</Badge>
+                    <Badge>Most Popular</Badge>
                   </div>
                 )}
                 <CardHeader className="pt-8">
@@ -126,15 +125,13 @@ export function PricingSection() {
                 </CardContent>
                 <CardFooter className="pt-4">
                   <Link href="/request-access" className="w-full">
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button
-                        className="w-full"
-                        variant={plan.variant}
-                        size="lg"
-                      >
-                        {plan.cta}
-                      </Button>
-                    </motion.div>
+                    <Button
+                      className="w-full"
+                      variant={plan.variant}
+                      size="lg"
+                    >
+                      {plan.cta}
+                    </Button>
                   </Link>
                 </CardFooter>
               </Card>
