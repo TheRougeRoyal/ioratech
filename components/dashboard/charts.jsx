@@ -20,19 +20,19 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const COLORS = [
-  "hsl(221, 83%, 53%)",
-  "hsl(212, 95%, 68%)",
-  "hsl(216, 92%, 60%)",
-  "hsl(210, 98%, 78%)",
-  "hsl(199, 89%, 48%)",
+  "#2563eb", // blue-600
+  "#0ea5e9", // cyan-500
+  "#10b981", // emerald-500
+  "#f59e0b", // amber-500
+  "#8b5cf6", // violet-500
 ];
 
 export function EmissionsChart({ data }) {
   return (
-    <Card className="border-border/50">
+    <Card className="border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50">
       <CardHeader>
-        <CardTitle>Emissions Trend</CardTitle>
-        <CardDescription>Total emissions over time (tCO2e)</CardDescription>
+        <CardTitle className="text-slate-900 dark:text-white">Emissions Trend</CardTitle>
+        <CardDescription className="text-slate-600 dark:text-slate-400">Total emissions over time (tCO2e)</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -76,10 +76,10 @@ export function EmissionsChart({ data }) {
 
 export function ScopeBreakdownChart({ data }) {
   return (
-    <Card className="border-border/50">
+    <Card className="border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50">
       <CardHeader>
-        <CardTitle>Emissions by Scope</CardTitle>
-        <CardDescription>Distribution across Scope 1, 2, and 3</CardDescription>
+        <CardTitle className="text-slate-900 dark:text-white">Emissions by Scope</CardTitle>
+        <CardDescription className="text-slate-600 dark:text-slate-400">Distribution across Scope 1, 2, and 3</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>

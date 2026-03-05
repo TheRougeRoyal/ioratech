@@ -21,7 +21,7 @@ import {
   BarChart,
 } from "recharts";
 
-const COLORS = ["hsl(221, 83%, 53%)", "hsl(199, 89%, 48%)", "hsl(215, 20%, 65%)"];
+const COLORS = ["#2563eb", "#0ea5e9", "#10b981"];
 
 const emissionsData = [
   { month: "Jan", emissions: 12500 },
@@ -88,7 +88,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* KPI Cards */}
-      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <MetricCard
           title="Total Emissions"
           value="100,000"
@@ -130,14 +130,14 @@ export default function DashboardPage() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div variants={item}>
-          <Card className="border-border/50 overflow-hidden">
-            <CardHeader className="pb-2">
+          <Card className="border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50 overflow-hidden">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base">Emissions Trend</CardTitle>
-                  <CardDescription>Monthly total emissions (tCO2e)</CardDescription>
+                  <CardTitle className="text-base text-slate-900 dark:text-white">Emissions Trend</CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">Monthly total emissions (tCO2e)</CardDescription>
                 </div>
-                <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-800">
+                <Badge className="text-xs text-white bg-emerald-600 hover:bg-emerald-700">
                   <TrendingDown className="h-3 w-3 mr-1" />
                   -32% YTD
                 </Badge>
@@ -167,10 +167,10 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div variants={item}>
-          <Card className="border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Emissions by Scope</CardTitle>
-              <CardDescription>Distribution across Scope 1, 2, and 3</CardDescription>
+          <Card className="border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-slate-900 dark:text-white">Emissions by Scope</CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-400">Distribution across Scope 1, 2, and 3</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center">
@@ -210,19 +210,19 @@ export default function DashboardPage() {
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <motion.div variants={item}>
-          <Card className="border-border/50 h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Risk Score by Category</CardTitle>
-              <CardDescription>Climate risk exposure assessment</CardDescription>
+          <Card className="border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50 h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-slate-900 dark:text-white">Risk Score by Category</CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-400">Climate risk exposure assessment</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={riskData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" horizontal={false} />
-                  <XAxis type="number" domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis dataKey="category" type="category" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} width={80} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
-                  <Bar dataKey="score" fill="hsl(221, 83%, 53%)" radius={[0, 4, 4, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" dark-stroke="#334155" horizontal={false} />
+                  <XAxis type="number" domain={[0, 100]} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="category" type="category" tick={{ fill: "#64748b", fontSize: 11 }} width={80} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", color: "#1e293b" }} />
+                  <Bar dataKey="score" fill="#2563eb" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -230,17 +230,17 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div variants={item}>
-          <Card className="border-border/50 h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Geographic Distribution</CardTitle>
-              <CardDescription>Asset locations and regional exposure</CardDescription>
+          <Card className="border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50 h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-slate-900 dark:text-white">Geographic Distribution</CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-400">Asset locations and regional exposure</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[200px] bg-muted/30 rounded-lg flex items-center justify-center border border-dashed border-border/50">
+              <div className="h-[200px] bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-slate-800 dark:to-slate-800 rounded-lg flex items-center justify-center border border-dashed border-slate-300 dark:border-slate-600">
                 <div className="text-center">
-                  <Globe className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
-                  <p className="text-sm font-medium">Interactive Risk Map</p>
-                  <p className="text-xs text-muted-foreground">12 facilities · 8 regions</p>
+                  <Globe className="h-10 w-10 mx-auto text-blue-400 mb-2" />
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Interactive Risk Map</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">12 facilities · 8 regions</p>
                 </div>
               </div>
             </CardContent>
@@ -248,29 +248,29 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div variants={item}>
-          <Card className="border-border/50 h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Scenario Summary</CardTitle>
-              <CardDescription>Financial impact projections</CardDescription>
+          <Card className="border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50 h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-slate-900 dark:text-white">Scenario Summary</CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-400">Financial impact projections</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { name: "Net Zero 2050", impact: "-$12.4M", type: "transition", color: "text-blue-500" },
-                { name: "Delayed Transition", impact: "-$28.7M", type: "stranded", color: "text-amber-500" },
-                { name: "Current Policies", impact: "-$45.2M", type: "physical", color: "text-red-500" },
+                { name: "Net Zero 2050", impact: "-$12.4M", type: "transition", color: "text-blue-600 dark:text-blue-400" },
+                { name: "Delayed Transition", impact: "-$28.7M", type: "stranded", color: "text-amber-600 dark:text-amber-400" },
+                { name: "Current Policies", impact: "-$45.2M", type: "physical", color: "text-red-600 dark:text-red-400" },
               ].map((scenario) => (
                 <motion.div
                   key={scenario.name}
                   whileHover={{ x: 4 }}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border/30 cursor-pointer hover:border-border transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <div>
-                    <div className="text-sm font-medium">{scenario.name}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{scenario.type} risk</div>
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white">{scenario.name}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 capitalize">{scenario.type} risk</div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className={`text-lg font-bold ${scenario.color}`}>{scenario.impact}</span>
-                    <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                    <ArrowUpRight className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                   </div>
                 </motion.div>
               ))}
