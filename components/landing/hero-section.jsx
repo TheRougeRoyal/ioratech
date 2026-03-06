@@ -23,11 +23,6 @@ export function HeroSection() {
       <div className="container">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="max-w-xl">
-            <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-muted/80 border border-border/50 mb-6">
-              <span className="inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              <span className="text-xs font-medium text-muted-foreground">Platform Active</span>
-            </div>
-
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-[1.1]">
               Operational{" "}
               <span className="text-primary">Climate</span>

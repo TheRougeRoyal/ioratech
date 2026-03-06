@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Database, Cpu, FileOutput } from "lucide-react";
+import { Database, Cpu, FileOutput, ShieldCheck } from "lucide-react";
 
 const steps = [
   {
@@ -17,7 +17,7 @@ const steps = [
     number: "02",
     title: "Modeling & Risk Intelligence",
     description:
-      "Machine learning models analyze your data against climate scenarios. Quantify risks, identify hotspots, and surface actionable insights.",
+      "ML models trained on millions of data points analyze your operations against climate scenarios. Monte Carlo simulations quantify risks in financial terms your board understands.",
     details: ["AI-powered analysis", "Scenario modeling", "Risk quantification"],
   },
   {
@@ -27,6 +27,14 @@ const steps = [
     description:
       "Generate board-ready reports, regulatory disclosures, and strategic recommendations. All outputs are audit-ready and framework-aligned.",
     details: ["TCFD/CSRD aligned", "Audit trails", "Board presentations"],
+  },
+  {
+    icon: ShieldCheck,
+    number: "04",
+    title: "Assured & Standards-Aligned",
+    description:
+      "Every calculation is traceable and reproducible, aligned with GHG Protocol, PCAF, and ISSB standards. Our methodology is independently verified by leading assurance providers.",
+    details: ["GHG Protocol", "PCAF & ISSB", "Independent verification"],
   },
 ];
 
@@ -43,11 +51,11 @@ export function HowItWorksSection() {
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">How Iora Works</h2>
           <p className="text-lg text-muted-foreground">
-            From raw data to strategic decisions in three integrated steps.
+            Rigorous methodology, from raw data to assured strategic decisions.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {steps.map((step, index) => (
             <motion.div
               key={step.title}

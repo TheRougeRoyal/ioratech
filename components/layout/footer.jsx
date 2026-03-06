@@ -18,7 +18,7 @@ export function Footer() {
     resources: [
       { label: "Documentation", href: "/docs" },
       { label: "API Reference", href: "/api-docs" },
-      { label: "Methodology", href: "/methodology" },
+      { label: "How It Works", href: "/#how-it-works" },
       { label: "Status", href: "/status" },
     ],
     legal: [
