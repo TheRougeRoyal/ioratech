@@ -3,6 +3,8 @@ import { getSupabaseClient } from '@/lib/supabase';
 import { getUserApiKeys } from '@/lib/supabase';
 import { createResponse, ErrorCode, createErrorResponseObj } from '@/lib/api-response';
 import { requireAuth } from '@/lib/auth-middleware';
+
+export const dynamic = 'force-dynamic';
 import type { ApiKeyListResponse } from '@/types/api';
 
 export async function GET(request: NextRequest) {

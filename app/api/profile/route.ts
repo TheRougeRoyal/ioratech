@@ -3,6 +3,8 @@ import { getSupabaseClient, getUserProfile, updateUserProfile } from '@/lib/supa
 import { createErrorResponseObj, createResponse, ErrorCode } from '@/lib/api-response';
 import type { User } from '@/types/database';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/profile — Fetch the authenticated user's profile
  */
