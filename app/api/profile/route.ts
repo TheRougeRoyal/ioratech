@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
-import { getSupabaseClient, getUserProfile, updateUserProfile } from '@/lib/supabase';
+import { getSupabaseClient, getSupabaseAdmin, getUserProfile, updateUserProfile } from '@/lib/supabase';
 import { createErrorResponseObj, createResponse, ErrorCode } from '@/lib/api-response';
+import { createAuditLog } from '@/lib/audit';
+import { getClientIp } from '@/lib/rate-limit';
 import type { User } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -43,11 +45,21 @@ export async function GET(request: NextRequest) {
         job_title: null,
         bio: null,
         timezone: 'UTC',
+        locale: 'en-US',
+        role: 'member',
+        status: 'active',
+        subscription_tier: 'free',
+        email_verified: false,
+        two_factor_enabled: false,
+        onboarding_completed: false,
         notification_preferences: {
           email_reports: true,
           risk_alerts: true,
           compliance_updates: true,
           product_updates: true,
+          weekly_digest: true,
+          security_alerts: true,
+          preferred_channel: 'email',
         },
         created_at: user.created_at,
         updated_at: user.created_at,
@@ -99,7 +111,9 @@ export async function PUT(request: NextRequest) {
       'job_title',
       'bio',
       'timezone',
+      'locale',
       'notification_preferences',
+      'onboarding_completed',
     ] as const;
 
     const sanitized: Record<string, unknown> = {};
@@ -116,9 +130,30 @@ export async function PUT(request: NextRequest) {
     // Validate notification_preferences shape if provided
     if (sanitized.notification_preferences) {
       const prefs = sanitized.notification_preferences as Record<string, unknown>;
-      const validKeys = ['email_reports', 'risk_alerts', 'compliance_updates', 'product_updates'];
+      const validKeys = [
+        'email_reports',
+        'risk_alerts',
+        'compliance_updates',
+        'product_updates',
+        'weekly_digest',
+        'security_alerts',
+        'preferred_channel',
+      ];
       for (const key of Object.keys(prefs)) {
-        if (!validKeys.includes(key) || typeof prefs[key] !== 'boolean') {
+        if (!validKeys.includes(key)) {
+          return createErrorResponseObj(
+            ErrorCode.INVALID_REQUEST,
+            `Invalid notification_preferences key: "${key}"`
+          );
+        }
+        if (key === 'preferred_channel') {
+          if (!['email', 'in_app', 'both'].includes(prefs[key] as string)) {
+            return createErrorResponseObj(
+              ErrorCode.INVALID_REQUEST,
+              `preferred_channel must be 'email', 'in_app', or 'both'`
+            );
+          }
+        } else if (typeof prefs[key] !== 'boolean') {
           return createErrorResponseObj(
             ErrorCode.INVALID_REQUEST,
             `Invalid notification_preferences: "${key}" must be a boolean`
@@ -148,6 +183,20 @@ export async function PUT(request: NextRequest) {
     } else {
       updatedProfile = await updateUserProfile(client, user.id, sanitized as Partial<User>);
     }
+
+    // Audit log for profile update (fire-and-forget)
+    const adminClient = getSupabaseAdmin();
+    const clientIp = getClientIp(request.headers);
+    const userAgent = request.headers.get('user-agent') || '';
+    createAuditLog(adminClient, {
+      userId: user.id,
+      action: 'profile_updated',
+      ipAddress: clientIp,
+      userAgent,
+      resourceType: 'user',
+      resourceId: user.id,
+      metadata: { updated_fields: Object.keys(sanitized) },
+    });
 
     return createResponse(updatedProfile);
   } catch (error) {

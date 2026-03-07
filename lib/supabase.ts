@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { User, ApiKey, ApiKeyUsageLog } from '@/types/database';
+import type { User, ApiKey, ApiKeyUsageLog, HttpMethod, Organization, OrganizationMember } from '@/types/database';
 
 let supabaseClient: SupabaseClient | null = null;
 
@@ -109,7 +109,13 @@ export async function updateUserProfile(
 /**
  * Create initial user profile
  */
-export async function createUserProfile(client: SupabaseClient, userId: string, email: string, name?: string) {
+export async function createUserProfile(
+  client: SupabaseClient,
+  userId: string,
+  email: string,
+  name?: string,
+  extras?: { company?: string; job_title?: string }
+) {
   try {
     const { data, error } = await client
       .from('users')
@@ -117,6 +123,14 @@ export async function createUserProfile(client: SupabaseClient, userId: string, 
         id: userId,
         email,
         name,
+        company: extras?.company || null,
+        job_title: extras?.job_title || null,
+        role: 'member',
+        status: 'active',
+        subscription_tier: 'free',
+        email_verified: false,
+        two_factor_enabled: false,
+        onboarding_completed: false,
       })
       .select()
       .single();
@@ -164,7 +178,15 @@ export async function createApiKey(
   name: string,
   keyHash: string,
   keyPreview: string,
-  expiresAt?: string
+  expiresAt?: string,
+  extras?: {
+    description?: string;
+    scopes?: string[];
+    allowed_ips?: string[];
+    allowed_origins?: string[];
+    rate_limit_per_minute?: number;
+    organization_id?: string;
+  }
 ) {
   try {
     const { data, error } = await client
@@ -175,6 +197,12 @@ export async function createApiKey(
         key_hash: keyHash,
         key_preview: keyPreview,
         expires_at: expiresAt,
+        description: extras?.description || null,
+        scopes: extras?.scopes || ['read'],
+        allowed_ips: extras?.allowed_ips || null,
+        allowed_origins: extras?.allowed_origins || null,
+        rate_limit_per_minute: extras?.rate_limit_per_minute || 60,
+        organization_id: extras?.organization_id || null,
       })
       .select()
       .single();
@@ -200,6 +228,7 @@ export async function revokeApiKey(client: SupabaseClient, keyId: string, userId
       .update({
         is_active: false,
         revoked_at: new Date().toISOString(),
+        revoked_by: userId,
       })
       .eq('id', keyId)
       .eq('user_id', userId)
@@ -260,11 +289,17 @@ export async function logApiKeyUsage(
   apiKeyId: string,
   userId: string,
   endpoint: string,
-  method: string,
+  method: HttpMethod,
   statusCode: number,
   ipAddress: string,
-  userAgent?: string,
-  responseTimeMs?: number
+  extras?: {
+    userAgent?: string;
+    responseTimeMs?: number;
+    organizationId?: string;
+    requestBodySize?: number;
+    responseBodySize?: number;
+    errorMessage?: string;
+  }
 ) {
   try {
     const { error } = await adminClient
@@ -276,8 +311,12 @@ export async function logApiKeyUsage(
         method,
         status_code: statusCode,
         ip_address: ipAddress,
-        user_agent: userAgent,
-        response_time_ms: responseTimeMs,
+        user_agent: extras?.userAgent || null,
+        response_time_ms: extras?.responseTimeMs || null,
+        organization_id: extras?.organizationId || null,
+        request_body_size: extras?.requestBodySize || null,
+        response_body_size: extras?.responseBodySize || null,
+        error_message: extras?.errorMessage || null,
       });
 
     if (error) {

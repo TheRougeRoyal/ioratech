@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase';
+import { getSupabaseClient, getSupabaseAdmin } from '@/lib/supabase';
 import { validatePassword, isValidEmail, sanitizeInput } from '@/lib/api-key-utils';
 import { createUserProfile } from '@/lib/supabase';
 import { createErrorResponseObj, createResponse, ErrorCode } from '@/lib/api-response';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { createAuditLog } from '@/lib/audit';
 import type { SignUpRequest, AuthResponse } from '@/types/auth';
 
 export async function POST(request: NextRequest) {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate input
-    const { email, password, name } = body;
+    const { email, password, name, company, job_title } = body;
 
     if (!email || !password) {
       return createErrorResponseObj(
@@ -108,13 +109,29 @@ export async function POST(request: NextRequest) {
         client,
         authData.user.id,
         email,
-        sanitizeInput(name || '')
+        sanitizeInput(name || ''),
+        {
+          company: company ? sanitizeInput(company) : undefined,
+          job_title: job_title ? sanitizeInput(job_title) : undefined,
+        }
       );
     } catch (profileError) {
       console.error('Profile creation error:', profileError);
       // Don't fail the signup if profile creation fails, but log it
       // The profile can be created later
     }
+
+    // Audit log for signup
+    const adminClient = getSupabaseAdmin();
+    const clientIp = getClientIp(request.headers);
+    const userAgent = request.headers.get('user-agent') || '';
+    createAuditLog(adminClient, {
+      userId: authData.user.id,
+      action: 'login', // Treat initial signup as first "login" event
+      ipAddress: clientIp,
+      userAgent,
+      metadata: { event: 'signup' },
+    });
 
     // Return success response
     const responseData: AuthResponse = {

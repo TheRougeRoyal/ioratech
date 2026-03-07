@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase';
+import { getSupabaseClient, getSupabaseAdmin } from '@/lib/supabase';
 import { generateApiKey, hashApiKey, createApiKeyPreview, sanitizeInput } from '@/lib/api-key-utils';
 import { createApiKey } from '@/lib/supabase';
 import { createResponse, ErrorCode, createErrorResponseObj } from '@/lib/api-response';
 import { requireAuth } from '@/lib/auth-middleware';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { createAuditLog } from '@/lib/audit';
 import type { ApiKeyCreateRequest, ApiKeyCreateResponse } from '@/types/api';
 
 export async function POST(request: NextRequest) {
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, expires_in_days } = body;
+    const { name, expires_in_days, description, scopes, allowed_ips, allowed_origins } = body;
 
     // Validate input
     if (!name || name.trim().length === 0) {
@@ -80,8 +81,28 @@ export async function POST(request: NextRequest) {
       sanitizedName,
       keyHash,
       keyPreview,
-      expiresAt
+      expiresAt,
+      {
+        description: description ? sanitizeInput(description) : undefined,
+        scopes: scopes || ['read'],
+        allowed_ips: allowed_ips,
+        allowed_origins: allowed_origins,
+      }
     );
+
+    // Audit log
+    const adminClient = getSupabaseAdmin();
+    const clientIp = getClientIp(request.headers);
+    const userAgent = request.headers.get('user-agent') || '';
+    createAuditLog(adminClient, {
+      userId: auth.userId,
+      action: 'api_key_created',
+      ipAddress: clientIp,
+      userAgent,
+      resourceType: 'api_key',
+      resourceId: createdKey.id,
+      metadata: { key_name: sanitizedName, scopes: scopes || ['read'] },
+    });
 
     // Return the full key only on creation (never again)
     const responseData: ApiKeyCreateResponse = {
@@ -92,6 +113,7 @@ export async function POST(request: NextRequest) {
           name: createdKey.name,
           key: apiKey, // Full key - shown only once
           key_preview: createdKey.key_preview,
+          scopes: createdKey.scopes || ['read'],
           created_at: createdKey.created_at,
           expires_at: createdKey.expires_at,
         },

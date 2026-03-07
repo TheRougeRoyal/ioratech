@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase';
+import { getSupabaseClient, getSupabaseAdmin } from '@/lib/supabase';
 import { revokeApiKey } from '@/lib/supabase';
 import { createResponse, ErrorCode, createErrorResponseObj } from '@/lib/api-response';
 import { requireAuth } from '@/lib/auth-middleware';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { createAuditLog } from '@/lib/audit';
 import type { ApiKeyRevokeRequest, ApiKeyRevokeResponse } from '@/types/api';
 
 export async function DELETE(request: NextRequest) {
@@ -74,6 +75,20 @@ export async function DELETE(request: NextRequest) {
 
     // Revoke the API key
     const revokedKey = await revokeApiKey(client, api_key_id, auth.userId);
+
+    // Audit log
+    const adminClient = getSupabaseAdmin();
+    const clientIp = getClientIp(request.headers);
+    const userAgent = request.headers.get('user-agent') || '';
+    createAuditLog(adminClient, {
+      userId: auth.userId,
+      action: 'api_key_revoked',
+      ipAddress: clientIp,
+      userAgent,
+      resourceType: 'api_key',
+      resourceId: api_key_id,
+      metadata: { key_name: keyData.name },
+    });
 
     const responseData: ApiKeyRevokeResponse = {
       success: true,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [formData, setFormData] = useState({
@@ -58,8 +60,8 @@ export default function LoginPage() {
         localStorage.setItem('auth_token', data.data.token);
       }
 
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect to intended page or dashboard
+      router.push(callbackUrl);
     } catch (err) {
       setError('An error occurred. Please try again.');
       console.error('Login error:', err);

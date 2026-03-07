@@ -1,8 +1,14 @@
 // API request/response type definitions
 
+import type { ApiKeyScope } from '@/types/database';
+
 export interface ApiKeyCreateRequest {
   name: string;
+  description?: string;
   expires_in_days?: number;
+  scopes?: ApiKeyScope[];
+  allowed_ips?: string[];
+  allowed_origins?: string[];
 }
 
 export interface ApiKeyCreateResponse {
@@ -14,6 +20,7 @@ export interface ApiKeyCreateResponse {
       name: string;
       key: string; // Full key - only shown once on creation
       key_preview: string;
+      scopes: ApiKeyScope[];
       created_at: string;
       expires_at?: string;
     };
@@ -30,12 +37,16 @@ export interface ApiKeyListResponse {
   api_keys: Array<{
     id: string;
     name: string;
+    description?: string;
     key_preview: string;
+    scopes: ApiKeyScope[];
     created_at: string;
     last_used_at?: string;
+    last_used_ip?: string;
     is_active: boolean;
     usage_count: number;
     expires_at?: string;
+    rate_limit_per_minute: number;
   }>;
 }
 
