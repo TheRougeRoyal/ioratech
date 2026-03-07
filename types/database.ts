@@ -5,9 +5,23 @@ export interface User {
   email: string;
   name?: string;
   avatar_url?: string;
+  phone?: string;
+  company?: string;
+  industry?: string;
+  job_title?: string;
+  bio?: string;
+  timezone?: string;
+  notification_preferences?: NotificationPreferences;
   created_at: string;
   updated_at: string;
   last_sign_in_at?: string;
+}
+
+export interface NotificationPreferences {
+  email_reports: boolean;
+  risk_alerts: boolean;
+  compliance_updates: boolean;
+  product_updates: boolean;
 }
 
 export interface ApiKey {

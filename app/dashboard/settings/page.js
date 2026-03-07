@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 import {
   Building,
   CreditCard,
@@ -23,6 +25,8 @@ import {
   Trash2,
   RefreshCw,
   Check,
+  Loader2,
+  User,
 } from "lucide-react";
 
 const apiKeys = [
@@ -46,9 +50,175 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
+const NOTIFICATION_ITEMS = [
+  { key: "email_reports", title: "Email Reports", desc: "Receive weekly summary reports" },
+  { key: "risk_alerts", title: "Risk Alerts", desc: "Get notified of risk score changes" },
+  { key: "compliance_updates", title: "Compliance Updates", desc: "Regulatory deadline reminders" },
+  { key: "product_updates", title: "Product Updates", desc: "New features and improvements" },
+];
+
+function getAuthHeaders() {
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 export default function SettingsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
   const [showKeys, setShowKeys] = useState({});
   const [copied, setCopied] = useState(null);
+
+  // Support ?tab=profile|organization|billing|api-keys|team
+  const defaultTab = searchParams.get("tab") || "profile";
+
+  // Profile state
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    industry: "",
+    job_title: "",
+    bio: "",
+    timezone: "UTC",
+    notification_preferences: {
+      email_reports: true,
+      risk_alerts: true,
+      compliance_updates: true,
+      product_updates: true,
+    },
+  });
+
+  // Fetch profile on mount
+  const fetchProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/profile", { headers: getAuthHeaders() });
+
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      const json = await res.json();
+
+      if (json.success && json.data) {
+        const d = json.data;
+        setProfile({
+          name: d.name || "",
+          email: d.email || "",
+          phone: d.phone || "",
+          company: d.company || "",
+          industry: d.industry || "",
+          job_title: d.job_title || "",
+          bio: d.bio || "",
+          timezone: d.timezone || "UTC",
+          notification_preferences: {
+            email_reports: d.notification_preferences?.email_reports ?? true,
+            risk_alerts: d.notification_preferences?.risk_alerts ?? true,
+            compliance_updates: d.notification_preferences?.compliance_updates ?? true,
+            product_updates: d.notification_preferences?.product_updates ?? true,
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load profile:", err);
+      toast({ title: "Error", description: "Could not load profile settings.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [router, toast]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  // Save profile
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true);
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          name: profile.name,
+          phone: profile.phone,
+          company: profile.company,
+          industry: profile.industry,
+          job_title: profile.job_title,
+          bio: profile.bio,
+          timezone: profile.timezone,
+        }),
+      });
+
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      const json = await res.json();
+
+      if (json.success) {
+        toast({ title: "Saved", description: "Profile settings updated successfully." });
+      } else {
+        toast({ title: "Error", description: json.error?.message || "Failed to save.", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Save profile error:", err);
+      toast({ title: "Error", description: "Failed to save profile settings.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Save notification preferences
+  const handleToggleNotification = async (key) => {
+    const updated = {
+      ...profile.notification_preferences,
+      [key]: !profile.notification_preferences[key],
+    };
+
+    // Optimistic UI update
+    setProfile((prev) => ({ ...prev, notification_preferences: updated }));
+
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ notification_preferences: updated }),
+      });
+
+      if (!res.ok) {
+        // Revert on failure
+        setProfile((prev) => ({
+          ...prev,
+          notification_preferences: {
+            ...prev.notification_preferences,
+            [key]: !updated[key],
+          },
+        }));
+        toast({ title: "Error", description: "Failed to update notification setting.", variant: "destructive" });
+      }
+    } catch {
+      setProfile((prev) => ({
+        ...prev,
+        notification_preferences: {
+          ...prev.notification_preferences,
+          [key]: !updated[key],
+        },
+      }));
+    }
+  };
+
+  const handleChange = (field) => (e) => {
+    setProfile((prev) => ({ ...prev, [field]: e.target.value }));
+  };
 
   const copyToClipboard = (text, id) => {
     navigator.clipboard.writeText(text);
@@ -56,16 +226,28 @@ export default function SettingsPage() {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
       <motion.div variants={item}>
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your organization settings and preferences</p>
+        <p className="text-muted-foreground">Manage your account settings and preferences</p>
       </motion.div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="profile" className="data-[state=active]:bg-background">
+            <User className="h-4 w-4 mr-2" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="organization" className="data-[state=active]:bg-background">
             <Building className="h-4 w-4 mr-2" />
             Organization
           </TabsTrigger>
@@ -83,40 +265,48 @@ export default function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
+        {/* ── Profile Tab ── */}
         <TabsContent value="profile" className="space-y-6">
           <motion.div variants={item}>
             <Card className="border-border/50">
               <CardHeader>
-                <CardTitle className="text-base">Organization Profile</CardTitle>
-                <CardDescription>Update your company information</CardDescription>
+                <CardTitle className="text-base">Personal Information</CardTitle>
+                <CardDescription>Your account details linked to this login</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="org-name">Organization Name</Label>
-                    <Input id="org-name" defaultValue="Acme Corporation" />
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input id="name" value={profile.name} onChange={handleChange("name")} placeholder="Your name" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="industry">Industry</Label>
-                    <Input id="industry" defaultValue="Manufacturing" />
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" value={profile.email} disabled className="bg-muted/40 cursor-not-allowed" />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" defaultValue="Global manufacturing company with operations across 12 countries." rows={3} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="employees">Number of Employees</Label>
-                    <Input id="employees" defaultValue="5,200" />
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input id="phone" value={profile.phone} onChange={handleChange("phone")} placeholder="+1 (555) 000-0000" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="revenue">Annual Revenue</Label>
-                    <Input id="revenue" defaultValue="$2.4B" />
+                    <Label htmlFor="job_title">Job Title</Label>
+                    <Input id="job_title" value={profile.job_title} onChange={handleChange("job_title")} placeholder="e.g. Sustainability Manager" />
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea id="bio" value={profile.bio} onChange={handleChange("bio")} placeholder="A short description about yourself" rows={3} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="timezone">Timezone</Label>
+                  <Input id="timezone" value={profile.timezone} onChange={handleChange("timezone")} placeholder="e.g. America/New_York" />
+                </div>
                 <div className="flex justify-end">
-                  <Button>Save Changes</Button>
+                  <Button onClick={handleSaveProfile} disabled={saving}>
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Save Changes
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -129,18 +319,16 @@ export default function SettingsPage() {
                 <CardDescription>Configure how you receive updates</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { title: "Email Reports", desc: "Receive weekly summary reports" },
-                  { title: "Risk Alerts", desc: "Get notified of risk score changes" },
-                  { title: "Compliance Updates", desc: "Regulatory deadline reminders" },
-                  { title: "Product Updates", desc: "New features and improvements" },
-                ].map((item) => (
-                  <div key={item.title} className="flex items-center justify-between py-2">
+                {NOTIFICATION_ITEMS.map((n) => (
+                  <div key={n.key} className="flex items-center justify-between py-2">
                     <div>
-                      <div className="font-medium text-sm">{item.title}</div>
-                      <div className="text-xs text-muted-foreground">{item.desc}</div>
+                      <div className="font-medium text-sm">{n.title}</div>
+                      <div className="text-xs text-muted-foreground">{n.desc}</div>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch
+                      checked={profile.notification_preferences[n.key]}
+                      onCheckedChange={() => handleToggleNotification(n.key)}
+                    />
                   </div>
                 ))}
               </CardContent>
@@ -148,6 +336,37 @@ export default function SettingsPage() {
           </motion.div>
         </TabsContent>
 
+        {/* ── Organization Tab ── */}
+        <TabsContent value="organization" className="space-y-6">
+          <motion.div variants={item}>
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="text-base">Organization Profile</CardTitle>
+                <CardDescription>Your company information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="company">Company Name</Label>
+                    <Input id="company" value={profile.company} onChange={handleChange("company")} placeholder="Your company" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="industry">Industry</Label>
+                    <Input id="industry" value={profile.industry} onChange={handleChange("industry")} placeholder="e.g. Manufacturing" />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={handleSaveProfile} disabled={saving}>
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Save Changes
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* ── Billing Tab (unchanged) ── */}
         <TabsContent value="billing" className="space-y-6">
           <motion.div variants={item}>
             <Card className="border-border/50">
@@ -212,6 +431,7 @@ export default function SettingsPage() {
           </motion.div>
         </TabsContent>
 
+        {/* ── API Keys Tab (unchanged) ── */}
         <TabsContent value="api-keys" className="space-y-6">
           <motion.div variants={item}>
             <Card className="border-border/50">
@@ -272,6 +492,7 @@ export default function SettingsPage() {
           </motion.div>
         </TabsContent>
 
+        {/* ── Team Tab (unchanged) ── */}
         <TabsContent value="team" className="space-y-6">
           <motion.div variants={item}>
             <Card className="border-border/50">

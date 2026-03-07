@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   LayoutDashboard,
   Activity,
@@ -14,172 +13,135 @@ import {
   FileText,
   Shield,
   Settings,
-  ChevronLeft,
-  ChevronRight,
+  X,
 } from "lucide-react";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 
 const sidebarLinks = [
   { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { title: "Carbon Metrics", href: "/dashboard/carbon-metrics", icon: Activity },
   { title: "Risk Analysis", href: "/dashboard/risk-analysis", icon: AlertTriangle },
-  { title: "Scenario Simulator", href: "/dashboard/scenario-simulator", icon: Sliders },
-  { title: "Compliance Monitor", href: "/dashboard/compliance", icon: Shield },
+  { title: "Scenarios", href: "/dashboard/scenario-simulator", icon: Sliders },
+  { title: "Compliance", href: "/dashboard/compliance", icon: Shield },
   { title: "Reports", href: "/dashboard/reports", icon: FileText },
 ];
 
-export function DashboardSidebar() {
-  const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
-
-  const renderNav = (isCollapsed) => (
-    <nav className="p-2 space-y-1">
-      {sidebarLinks.map((link) => {
-        const isActive = pathname === link.href;
-        const NavButton = (
-          <Link
-            key={link.href}
-            href={link.href}
-          >
-            <motion.div whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant={isActive ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full relative overflow-hidden",
-                  isCollapsed ? "justify-center px-2" : "justify-start px-3",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-                )}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTabDesktop"
-                    className="absolute left-0 top-0 bottom-0 w-0.5 bg-sidebar-primary"
-                  />
-                )}
-                <link.icon className={cn("h-4 w-4 flex-shrink-0", isCollapsed ? "" : "mr-3")} />
-                {!isCollapsed && <span className="truncate">{link.title}</span>}
-              </Button>
-            </motion.div>
-          </Link>
-        );
-
-        if (isCollapsed) {
-          return (
-            <Tooltip key={link.href}>
-              <TooltipTrigger asChild>{NavButton}</TooltipTrigger>
-              <TooltipContent side="right" className="font-medium">
-                {link.title}
-              </TooltipContent>
-            </Tooltip>
-          );
-        }
-        return NavButton;
-      })}
-    </nav>
-  );
-
-  const renderContent = (isCollapsed) => (
-    <>
-      <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
-        <AnimatePresence mode="wait">
-          {!isCollapsed ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center space-x-2.5"
-            >
-              <Link
-                href="/"
-                className="flex items-center space-x-2.5"
-              >
-                <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
-                  <span className="text-lg font-bold text-sidebar-primary-foreground">I</span>
-                </div>
-                <span className="text-lg font-semibold text-sidebar-foreground">Iora</span>
-              </Link>
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="mx-auto"
-            >
-              <Link href="/">
-                <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
-                  <span className="text-lg font-bold text-sidebar-primary-foreground">I</span>
-                </div>
-              </Link>
-            </motion.div>
-          )}
-        </AnimatePresence>
+function SidebarContent({ pathname, onNavigate }) {
+  return (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="flex h-14 items-center px-5 border-b border-sidebar-border">
+        <Link href="/" className="flex items-center gap-2.5" onClick={onNavigate}>
+          <div className="h-7 w-7 rounded-lg bg-sidebar-primary flex items-center justify-center">
+            <span className="text-sm font-bold text-sidebar-primary-foreground">I</span>
+          </div>
+          <span className="text-base font-semibold text-sidebar-foreground">Iora</span>
+        </Link>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-8rem)]">{renderNav(isCollapsed)}</ScrollArea>
+      {/* Nav links */}
+      <ScrollArea className="flex-1 px-3 py-4">
+        <nav className="space-y-0.5">
+          {sidebarLinks.map((link) => {
+            const isActive =
+              link.href === "/dashboard"
+                ? pathname === link.href
+                : pathname.startsWith(link.href);
 
-      <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-sidebar-border bg-sidebar">
-        <div className="space-y-1">
-          {isCollapsed ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link href="/dashboard/settings">
-                  <Button
-                    variant={pathname.startsWith("/dashboard/settings") ? "secondary" : "ghost"}
-                    className="w-full justify-center px-2 text-sidebar-foreground hover:bg-sidebar-accent/50"
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">Settings</TooltipContent>
-            </Tooltip>
-          ) : (
-            <Link href="/dashboard/settings">
-              <Button
-                variant={pathname.startsWith("/dashboard/settings") ? "secondary" : "ghost"}
-                className="w-full justify-start px-3 text-sidebar-foreground hover:bg-sidebar-accent/50"
-              >
-                <Settings className="h-4 w-4 mr-3" />
-                Settings
-              </Button>
-            </Link>
-          )}
+            return (
+              <Link key={link.href} href={link.href} onClick={onNavigate}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 px-3 h-10 font-normal",
+                    isActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                  )}
+                >
+                  <link.icon className="h-4 w-4 flex-shrink-0" />
+                  <span>{link.title}</span>
+                </Button>
+              </Link>
+            );
+          })}
+        </nav>
+      </ScrollArea>
+
+      {/* Bottom settings */}
+      <div className="px-3 py-3 border-t border-sidebar-border">
+        <Link href="/dashboard/settings" onClick={onNavigate}>
           <Button
             variant="ghost"
             className={cn(
-              "w-full text-sidebar-foreground hover:bg-sidebar-accent/50",
-              isCollapsed ? "justify-center px-2" : "justify-start px-3"
+              "w-full justify-start gap-3 px-3 h-10 font-normal",
+              pathname.startsWith("/dashboard/settings")
+                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
             )}
-            onClick={() => setCollapsed(!collapsed)}
           >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <>
-                <ChevronLeft className="h-4 w-4 mr-3" />
-                <span>Collapse</span>
-              </>
-            )}
+            <Settings className="h-4 w-4 flex-shrink-0" />
+            <span>Settings</span>
           </Button>
-        </div>
+        </Link>
       </div>
-    </>
+    </div>
   );
+}
+
+export function DashboardSidebar({ open, onOpenChange }) {
+  const pathname = usePathname();
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    onOpenChange?.(false);
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <motion.aside
-        initial={false}
-        animate={{ width: collapsed ? 72 : 256 }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="fixed left-0 top-0 h-screen border-r border-sidebar-border bg-sidebar z-40 hidden lg:block"
-      >
-        {renderContent(collapsed)}
-      </motion.aside>
-    </TooltipProvider>
+    <>
+      {/* Desktop sidebar — always visible on lg+ */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden lg:flex w-64 flex-col border-r border-sidebar-border bg-sidebar">
+        <SidebarContent pathname={pathname} onNavigate={() => {}} />
+      </aside>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => onOpenChange(false)}
+          />
+          {/* Drawer */}
+          <aside
+            className="absolute inset-y-0 left-0 w-72 bg-sidebar shadow-xl animate-in slide-in-from-left duration-200"
+          >
+            <div className="absolute top-3 right-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                onClick={() => onOpenChange(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <SidebarContent pathname={pathname} onNavigate={() => onOpenChange(false)} />
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
