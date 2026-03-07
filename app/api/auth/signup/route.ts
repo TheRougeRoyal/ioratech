@@ -123,7 +123,6 @@ export async function POST(request: NextRequest) {
 
     // Audit log for signup
     const adminClient = getSupabaseAdmin();
-    const clientIp = getClientIp(request.headers);
     const userAgent = request.headers.get('user-agent') || '';
     createAuditLog(adminClient, {
       userId: authData.user.id,
