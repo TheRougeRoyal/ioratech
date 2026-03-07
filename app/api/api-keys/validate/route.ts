@@ -74,8 +74,10 @@ export async function POST(request: NextRequest) {
         'POST',
         429,
         getClientIp(request.headers),
-        request.headers.get('user-agent') || undefined,
-        Date.now() - startTime
+        {
+          userAgent: request.headers.get('user-agent') || undefined,
+          responseTimeMs: Date.now() - startTime,
+        }
       );
 
       return createErrorResponseObj(
@@ -93,8 +95,10 @@ export async function POST(request: NextRequest) {
       'POST',
       200,
       getClientIp(request.headers),
-      request.headers.get('user-agent') || undefined,
-      Date.now() - startTime
+      {
+        userAgent: request.headers.get('user-agent') || undefined,
+        responseTimeMs: Date.now() - startTime,
+      }
     );
 
     const responseData: ApiKeyValidateResponse = {
