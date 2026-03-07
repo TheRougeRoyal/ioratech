@@ -29,12 +29,16 @@ export async function GET(request: NextRequest) {
     const responseKeys = apiKeys.map(key => ({
       id: key.id,
       name: key.name,
+      description: key.description,
       key_preview: key.key_preview,
+      scopes: key.scopes || ['read'],
       created_at: key.created_at,
       last_used_at: key.last_used_at,
+      last_used_ip: key.last_used_ip,
       is_active: key.is_active,
       usage_count: key.usage_count,
       expires_at: key.expires_at,
+      rate_limit_per_minute: key.rate_limit_per_minute ?? 60,
     }));
 
     const responseData: ApiKeyListResponse = {
