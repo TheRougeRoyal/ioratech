@@ -1,4 +1,4 @@
-// Database type definitions for Supabase
+// Database type definitions for SQL-backed auth/data
 
 // ──────────────────────────────────────────────
 // Enums & Literal Types

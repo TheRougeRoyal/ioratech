@@ -4,74 +4,79 @@
 
 @layer base {
   :root {
-    --background: 42 24% 97%;
-    --foreground: 218 24% 16%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 218 24% 16%;
+    --card-foreground: 0 0% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 218 24% 16%;
-    --primary: 214 30% 22%;
-    --primary-foreground: 42 24% 97%;
-    --secondary: 42 18% 92%;
-    --secondary-foreground: 218 24% 16%;
-    --muted: 42 16% 93%;
-    --muted-foreground: 218 10% 42%;
-    --accent: 42 20% 90%;
-    --accent-foreground: 218 24% 16%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 42 14% 85%;
-    --input: 42 14% 85%;
-    --ring: 214 30% 30%;
-    --chart-1: 221 83% 53%;
-    --chart-2: 199 89% 48%;
-    --chart-3: 173 58% 39%;
-    --chart-4: 220 70% 50%;
-    --chart-5: 160 60% 45%;
-    --radius: 0.75rem;
-    --sidebar-background: 42 18% 95%;
-    --sidebar-foreground: 218 24% 16%;
-    --sidebar-primary: 214 30% 24%;
-    --sidebar-primary-foreground: 42 24% 97%;
-    --sidebar-accent: 42 16% 90%;
-    --sidebar-accent-foreground: 218 24% 16%;
-    --sidebar-border: 42 14% 85%;
-    --sidebar-ring: 214 30% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 9%;
+    
+    --chart-1: 0 0% 9%;
+    --chart-2: 0 0% 30%;
+    --chart-3: 0 0% 50%;
+    --chart-4: 0 0% 70%;
+    --chart-5: 0 0% 90%;
+    
+    --radius: 0.5rem;
+    
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 9%;
+    --sidebar-primary: 0 0% 9%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 0% 9%;
   }
 
   .dark {
-    --background: 218 22% 10%;
-    --foreground: 42 16% 90%;
-    --card: 218 20% 12%;
-    --card-foreground: 42 16% 90%;
-    --popover: 218 20% 12%;
-    --popover-foreground: 42 16% 90%;
-    --primary: 42 16% 90%;
-    --primary-foreground: 218 22% 10%;
-    --secondary: 218 16% 17%;
-    --secondary-foreground: 42 16% 90%;
-    --muted: 218 16% 17%;
-    --muted-foreground: 42 9% 66%;
-    --accent: 218 16% 19%;
-    --accent-foreground: 42 16% 90%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 218 14% 24%;
-    --input: 218 14% 24%;
-    --ring: 206 62% 60%;
-    --chart-1: 221 83% 53%;
-    --chart-2: 199 89% 48%;
-    --chart-3: 173 58% 45%;
-    --chart-4: 220 70% 55%;
-    --chart-5: 160 60% 50%;
-    --sidebar-background: 218 20% 11%;
-    --sidebar-foreground: 42 10% 82%;
-    --sidebar-primary: 206 62% 60%;
-    --sidebar-primary-foreground: 218 22% 10%;
-    --sidebar-accent: 218 16% 16%;
-    --sidebar-accent-foreground: 42 10% 88%;
-    --sidebar-border: 218 14% 22%;
-    --sidebar-ring: 206 62% 60%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 60%;
+    
+    --chart-1: 0 0% 98%;
+    --chart-2: 0 0% 70%;
+    --chart-3: 0 0% 50%;
+    --chart-4: 0 0% 30%;
+    --chart-5: 0 0% 15%;
+    
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 0% 60%;
   }
 }
 
@@ -83,35 +88,31 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     text-rendering: optimizeLegibility;
+    letter-spacing: -0.01em;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply text-foreground font-semibold tracking-tight;
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-foreground font-medium tracking-tight;
   }
 
   h1 {
-    @apply text-4xl md:text-5xl leading-tight;
+    @apply text-5xl md:text-7xl leading-[1.05] tracking-tighter;
   }
 
   h2 {
-    @apply text-3xl md:text-4xl leading-tight;
+    @apply text-4xl md:text-5xl leading-[1.1] tracking-tight;
   }
 
   h3 {
-    @apply text-2xl md:text-3xl leading-snug;
+    @apply text-2xl md:text-3xl leading-snug tracking-tight;
   }
 
   h4 {
-    @apply text-xl md:text-2xl leading-snug;
+    @apply text-xl md:text-2xl leading-snug tracking-tight;
   }
 
   p {
-    @apply leading-7;
+    @apply leading-relaxed text-muted-foreground;
   }
 }
 
@@ -130,9 +131,27 @@
     animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   .glass {
-    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl;
+    @apply bg-background/70 backdrop-blur-xl border-border/50;
   }
   .glass-card {
-    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-border/50;
+    @apply bg-background/60 backdrop-blur-xl border border-border/40 hover:border-border/80 transition-all duration-300;
+  }
+  .sharp-shadow {
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05), 0 8px 16px rgba(0,0,0,0.05);
+  }
+  .dark .sharp-shadow {
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.4), 0 8px 16px rgba(0,0,0,0.4);
+  }
+  .border-gradient {
+    position: relative;
+  }
+  .border-gradient::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(to bottom right, rgba(255,255,255,0.2), rgba(255,255,255,0));
+    z-index: -1;
+    pointer-events: none;
   }
 }

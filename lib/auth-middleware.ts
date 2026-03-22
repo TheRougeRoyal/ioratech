@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient, getSupabaseAdmin, getCurrentUser, getUserProfile } from '@/lib/supabase';
-import { verifyToken, hashApiKey, isValidApiKeyFormat } from '@/lib/api-key-utils';
-import { findApiKeyByHash } from '@/lib/supabase';
+import { NextRequest } from 'next/server';
+import { findApiKeyByHash, getSessionIdentityByTokenHash, getUserProfile } from '@/lib/auth-db';
+import { hashApiKey, isValidApiKeyFormat } from '@/lib/api-key-utils';
 import { createErrorResponseObj, ErrorCode } from '@/lib/api-response';
 import { touchUserActivity } from '@/lib/audit';
 import type { UserRole, ApiKeyScope } from '@/types/database';
@@ -23,25 +22,42 @@ export interface AuthenticatedRequest extends NextRequest {
   role?: UserRole;
 }
 
-/**
- * Check if request has valid Supabase session
- */
-export async function checkSupabaseAuth(request: NextRequest): Promise<{ userId: string | null; error?: string }> {
-  try {
-    const authHeader = request.headers.get('authorization');
+function extractAuthToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.substring(7).trim();
+  }
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  return request.cookies.get('auth_token')?.value?.trim() || null;
+}
+
+/**
+ * Check if request has valid SQL-backed session token.
+ */
+export async function checkSessionAuth(request: NextRequest): Promise<{ userId: string | null; error?: string }> {
+  try {
+    const token = extractAuthToken(request);
+    if (!token) {
       return { userId: null, error: 'Missing authorization header' };
     }
 
-    const token = authHeader.substring(7);
-    const { valid, userId, error } = verifyToken(token);
-
-    if (!valid) {
-      return { userId: null, error: error || 'Invalid token' };
+    // If the token is clearly an API key, let API key auth handle it.
+    if (isValidApiKeyFormat(token)) {
+      return { userId: null, error: 'Missing session token' };
     }
 
-    return { userId: userId || null };
+    const tokenHash = hashApiKey(token);
+    const identity = await getSessionIdentityByTokenHash(tokenHash);
+
+    if (!identity) {
+      return { userId: null, error: 'Invalid or expired token' };
+    }
+
+    if (identity.status === 'suspended' || identity.status === 'deactivated') {
+      return { userId: null, error: 'Account is not active' };
+    }
+
+    return { userId: identity.userId };
   } catch (error) {
     console.error('Auth check error:', error);
     return { userId: null, error: 'Authentication failed' };
@@ -58,22 +74,17 @@ export async function checkApiKeyAuth(request: NextRequest): Promise<{
   error?: string;
 }> {
   try {
-    const authHeader = request.headers.get('authorization');
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = extractAuthToken(request);
+    if (!token) {
       return { userId: null, apiKeyId: null, error: 'Missing authorization header' };
     }
 
-    const apiKey = authHeader.substring(7);
-
-    if (!isValidApiKeyFormat(apiKey)) {
+    if (!isValidApiKeyFormat(token)) {
       return { userId: null, apiKeyId: null, error: 'Invalid API key format' };
     }
 
-    // Hash the API key and look it up
-    const keyHash = hashApiKey(apiKey);
-    const adminClient = getSupabaseAdmin();
-    const apiKeyRecord = await findApiKeyByHash(adminClient, keyHash);
+    const keyHash = hashApiKey(token);
+    const apiKeyRecord = await findApiKeyByHash(keyHash);
 
     if (!apiKeyRecord) {
       return { userId: null, apiKeyId: null, error: 'Invalid API key' };
@@ -110,13 +121,8 @@ export async function requireAuth(request: NextRequest): Promise<AuthResult> {
     // Try API key first
     const apiKeyAuth = await checkApiKeyAuth(request);
     if (apiKeyAuth.userId) {
-      // Fetch user role for API key holder
-      const client = getSupabaseClient();
-      const profile = await getUserProfile(client, apiKeyAuth.userId);
-
-      // Touch last_active_at (fire-and-forget)
-      const adminClient = getSupabaseAdmin();
-      touchUserActivity(adminClient, apiKeyAuth.userId);
+      const profile = await getUserProfile(apiKeyAuth.userId);
+      touchUserActivity(apiKeyAuth.userId);
 
       return {
         authenticated: true,
@@ -124,26 +130,22 @@ export async function requireAuth(request: NextRequest): Promise<AuthResult> {
         apiKeyId: apiKeyAuth.apiKeyId,
         role: profile?.role || 'member',
         scopes: apiKeyAuth.scopes,
-        type: 'apiKey' as const,
+        type: 'apiKey',
       };
     }
 
-    // Fall back to token
-    const tokenAuth = await checkSupabaseAuth(request);
+    // Fall back to session token
+    const tokenAuth = await checkSessionAuth(request);
     if (tokenAuth.userId) {
-      const client = getSupabaseClient();
-      const profile = await getUserProfile(client, tokenAuth.userId);
-
-      // Touch last_active_at (fire-and-forget)
-      const adminClient = getSupabaseAdmin();
-      touchUserActivity(adminClient, tokenAuth.userId);
+      const profile = await getUserProfile(tokenAuth.userId);
+      touchUserActivity(tokenAuth.userId);
 
       return {
         authenticated: true,
         userId: tokenAuth.userId,
         apiKeyId: null,
         role: profile?.role || 'member',
-        type: 'token' as const,
+        type: 'token',
       };
     }
 
@@ -151,7 +153,7 @@ export async function requireAuth(request: NextRequest): Promise<AuthResult> {
       authenticated: false,
       userId: null,
       apiKeyId: null,
-      error: apiKeyAuth.error || tokenAuth.error || 'Unauthorized',
+      error: tokenAuth.error || apiKeyAuth.error || 'Unauthorized',
     };
   } catch (error) {
     console.error('Auth middleware error:', error);
@@ -248,7 +250,6 @@ export function withRole(requiredRole: UserRole, handler: (req: NextRequest, con
  */
 export async function optionalAuth(request: NextRequest) {
   try {
-    // Try API key first
     const apiKeyAuth = await checkApiKeyAuth(request);
     if (apiKeyAuth.userId) {
       return {
@@ -259,8 +260,7 @@ export async function optionalAuth(request: NextRequest) {
       };
     }
 
-    // Fall back to token
-    const tokenAuth = await checkSupabaseAuth(request);
+    const tokenAuth = await checkSessionAuth(request);
     if (tokenAuth.userId) {
       return {
         authenticated: true,

@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
-import { getSupabaseClient, getSupabaseAdmin } from '@/lib/supabase';
+import { createApiKey } from '@/lib/auth-db';
 import { generateApiKey, hashApiKey, createApiKeyPreview, sanitizeInput } from '@/lib/api-key-utils';
-import { createApiKey } from '@/lib/supabase';
 import { createResponse, ErrorCode, createErrorResponseObj } from '@/lib/api-response';
 import { requireAuth } from '@/lib/auth-middleware';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -66,8 +65,6 @@ export async function POST(request: NextRequest) {
       expiresAt = expiryDate.toISOString();
     }
 
-    // Initialize Supabase client
-    const client = getSupabaseClient();
 
     // Generate new API key
     const apiKey = generateApiKey();
@@ -76,7 +73,6 @@ export async function POST(request: NextRequest) {
 
     // Store in database
     const createdKey = await createApiKey(
-      client,
       auth.userId,
       sanitizedName,
       keyHash,
@@ -91,10 +87,9 @@ export async function POST(request: NextRequest) {
     );
 
     // Audit log
-    const adminClient = getSupabaseAdmin();
     const clientIp = getClientIp(request.headers);
     const userAgent = request.headers.get('user-agent') || '';
-    createAuditLog(adminClient, {
+    createAuditLog({
       userId: auth.userId,
       action: 'api_key_created',
       ipAddress: clientIp,

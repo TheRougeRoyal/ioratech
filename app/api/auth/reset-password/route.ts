@@ -1,8 +1,10 @@
 import { NextRequest } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase';
-import { isValidEmail, validatePassword } from '@/lib/api-key-utils';
+import { consumePasswordResetToken, createPasswordResetToken, getUserByEmail, updateUserPassword } from '@/lib/auth-db';
+import { generateSecureToken, hashPassword } from '@/lib/auth-security';
+import { hashApiKey, isValidEmail, validatePassword } from '@/lib/api-key-utils';
 import { createResponse, ErrorCode, createErrorResponseObj } from '@/lib/api-response';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { createAuditLog, revokeUserSession } from '@/lib/audit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,12 +12,10 @@ export async function POST(request: NextRequest) {
     const type = url.searchParams.get('type'); // 'request' or 'reset'
 
     if (type === 'reset') {
-      // Reset password with new password
       return handlePasswordReset(request);
-    } else {
-      // Request password reset (send email)
-      return handlePasswordResetRequest(request);
     }
+
+    return handlePasswordResetRequest(request);
   } catch (error) {
     console.error('Password reset endpoint error:', error);
     return createErrorResponseObj(
@@ -27,10 +27,9 @@ export async function POST(request: NextRequest) {
 
 async function handlePasswordResetRequest(request: NextRequest) {
   try {
-    // Rate limiting
     const clientIp = getClientIp(request.headers);
     const rateLimitKey = `reset_request:${clientIp}`;
-    const rateLimit = parseInt(process.env.RATE_LIMIT_AUTH_PER_MINUTE || '5');
+    const rateLimit = parseInt(process.env.RATE_LIMIT_AUTH_PER_MINUTE || '5', 10);
 
     if (!checkRateLimit(rateLimitKey, rateLimit, 60000)) {
       return createErrorResponseObj(
@@ -39,7 +38,6 @@ async function handlePasswordResetRequest(request: NextRequest) {
       );
     }
 
-    // Parse request body
     let body: { email: string };
     try {
       body = await request.json();
@@ -50,7 +48,7 @@ async function handlePasswordResetRequest(request: NextRequest) {
       );
     }
 
-    const { email } = body;
+    const email = body.email?.trim().toLowerCase();
 
     if (!email) {
       return createErrorResponseObj(
@@ -66,25 +64,41 @@ async function handlePasswordResetRequest(request: NextRequest) {
       );
     }
 
-    // Initialize Supabase client
-    const client = getSupabaseClient();
+    const user = await getUserByEmail(email);
+    let devResetToken: string | undefined;
 
-    // Request password reset - Supabase will send email
-    const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password/confirm`,
-    });
+    if (user) {
+      const resetToken = generateSecureToken(32);
+      const tokenHash = hashApiKey(resetToken);
+      const ttlMinutes = parseInt(process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES || '30', 10);
+      const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000).toISOString();
 
-    if (error) {
-      console.error('Password reset request error:', error);
-      // Don't reveal if email exists for security
-      return createResponse(
-        { message: 'If an account exists with this email, you will receive a password reset link.' },
-        'Password reset email sent'
-      );
+      await createPasswordResetToken(user.id, tokenHash, expiresAt, clientIp);
+
+      createAuditLog({
+        userId: user.id,
+        action: 'password_reset_request',
+        ipAddress: clientIp,
+        userAgent: request.headers.get('user-agent') || '',
+      });
+
+      // Local development convenience when no mailer is configured.
+      if (process.env.NODE_ENV !== 'production') {
+        devResetToken = resetToken;
+      }
+    }
+
+    const responsePayload: Record<string, unknown> = {
+      message: 'If an account exists with this email, you will receive a password reset link.',
+    };
+
+    if (devResetToken) {
+      responsePayload.reset_token = devResetToken;
+      responsePayload.note = 'Development mode only: use reset_token with ?type=reset.';
     }
 
     return createResponse(
-      { message: 'If an account exists with this email, you will receive a password reset link.' },
+      responsePayload,
       'Password reset email sent'
     );
   } catch (error) {
@@ -98,7 +112,6 @@ async function handlePasswordResetRequest(request: NextRequest) {
 
 async function handlePasswordReset(request: NextRequest) {
   try {
-    // Parse request body
     let body: { token: string; password: string };
     try {
       body = await request.json();
@@ -118,7 +131,6 @@ async function handlePasswordReset(request: NextRequest) {
       );
     }
 
-    // Validate password strength
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.valid) {
       return createErrorResponseObj(
@@ -128,21 +140,25 @@ async function handlePasswordReset(request: NextRequest) {
       );
     }
 
-    // Initialize Supabase client
-    const client = getSupabaseClient();
-
-    // Update password with token
-    const { error } = await client.auth.updateUser({
-      password
-    });
-
-    if (error) {
-      console.error('Password reset error:', error);
+    const tokenHash = hashApiKey(token);
+    const tokenRecord = await consumePasswordResetToken(tokenHash);
+    if (!tokenRecord) {
       return createErrorResponseObj(
         ErrorCode.INVALID_REQUEST,
         'Invalid or expired reset token'
       );
     }
+
+    await updateUserPassword(tokenRecord.userId, hashPassword(password));
+    await revokeUserSession(tokenRecord.userId);
+
+    createAuditLog({
+      userId: tokenRecord.userId,
+      action: 'password_change',
+      ipAddress: getClientIp(request.headers),
+      userAgent: request.headers.get('user-agent') || '',
+      metadata: { event: 'password_reset' },
+    });
 
     return createResponse(
       { message: 'Password reset successfully' },

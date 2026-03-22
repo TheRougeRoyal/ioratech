@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { findApiKeyByHash, logApiKeyUsage } from '@/lib/auth-db';
 import { hashApiKey, isValidApiKeyFormat } from '@/lib/api-key-utils';
-import { findApiKeyByHash, logApiKeyUsage } from '@/lib/supabase';
 import { createResponse, ErrorCode, createErrorResponseObj } from '@/lib/api-response';
 import { getClientIp, checkRateLimit } from '@/lib/rate-limit';
 import type { ApiKeyValidateRequest, ApiKeyValidateResponse } from '@/types/api';
@@ -40,17 +39,12 @@ export async function POST(request: NextRequest) {
       return createResponse(responseData, 'API key validation result');
     }
 
-    // Get admin client
-    const adminClient = getSupabaseAdmin();
 
     // Hash and look up API key
     const keyHash = hashApiKey(api_key);
-    const apiKeyRecord = await findApiKeyByHash(adminClient, keyHash);
+    const apiKeyRecord = await findApiKeyByHash(keyHash);
 
     if (!apiKeyRecord) {
-      // Log failed attempt
-      const clientIp = getClientIp(request.headers);
-      const rateLimitKey = `api_validate_fail:${clientIp}`;
 
       const responseData: ApiKeyValidateResponse = {
         success: true,
@@ -67,7 +61,6 @@ export async function POST(request: NextRequest) {
     if (!checkRateLimit(rateLimitKey, rateLimit, 60000)) {
       // Log the attempt but return rate limited
       await logApiKeyUsage(
-        adminClient,
         apiKeyRecord.id,
         apiKeyRecord.user_id,
         '/api/api-keys/validate',
@@ -88,7 +81,6 @@ export async function POST(request: NextRequest) {
 
     // Log successful validation
     await logApiKeyUsage(
-      adminClient,
       apiKeyRecord.id,
       apiKeyRecord.user_id,
       '/api/api-keys/validate',

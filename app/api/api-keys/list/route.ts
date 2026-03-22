@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase';
-import { getUserApiKeys } from '@/lib/supabase';
+import { getUserApiKeys } from '@/lib/auth-db';
 import { createResponse, ErrorCode, createErrorResponseObj } from '@/lib/api-response';
 import { requireAuth } from '@/lib/auth-middleware';
 
@@ -19,11 +18,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Initialize Supabase client
-    const client = getSupabaseClient();
 
     // Fetch user's API keys
-    const apiKeys = await getUserApiKeys(client, auth.userId);
+    const apiKeys = await getUserApiKeys(auth.userId);
 
     // Map to response format (don't expose full hash)
     const responseKeys = apiKeys.map(key => ({

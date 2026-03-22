@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getSupabaseClient, getSupabaseAdmin } from '@/lib/supabase';
-import { revokeApiKey } from '@/lib/supabase';
+import { getApiKeyForUser, revokeApiKey } from '@/lib/auth-db';
 import { createResponse, ErrorCode, createErrorResponseObj } from '@/lib/api-response';
 import { requireAuth } from '@/lib/auth-middleware';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -48,18 +47,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Initialize Supabase client
-    const client = getSupabaseClient();
-
     // Check if the API key belongs to the user
-    const { data: keyData, error: checkError } = await client
-      .from('api_keys')
-      .select('*')
-      .eq('id', api_key_id)
-      .eq('user_id', auth.userId)
-      .single();
-
-    if (checkError || !keyData) {
+    const keyData = await getApiKeyForUser(api_key_id, auth.userId);
+    if (!keyData) {
       return createErrorResponseObj(
         ErrorCode.API_KEY_NOT_FOUND,
         'API key not found'
@@ -74,13 +64,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Revoke the API key
-    const revokedKey = await revokeApiKey(client, api_key_id, auth.userId);
+    await revokeApiKey(api_key_id, auth.userId);
 
     // Audit log
-    const adminClient = getSupabaseAdmin();
     const clientIp = getClientIp(request.headers);
     const userAgent = request.headers.get('user-agent') || '';
-    createAuditLog(adminClient, {
+    createAuditLog({
       userId: auth.userId,
       action: 'api_key_revoked',
       ipAddress: clientIp,

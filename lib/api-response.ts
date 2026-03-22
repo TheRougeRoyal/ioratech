@@ -77,7 +77,7 @@ export function generateRequestId(): string {
 }
 
 /**
- * Convert error status code from Supabase error
+ * Convert application error code to HTTP status code
  */
 export function getStatusCodeForErrorCode(code: ErrorCode): number {
   const statusMap: Record<ErrorCode, number> = {

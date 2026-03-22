@@ -1,6 +1,6 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { AuditAction, AuditLog, LoginAttempt, UserSession } from '@/types/database';
-import { hashApiKey } from '@/lib/api-key-utils';
+import crypto from 'crypto';
+import { getDb, nowIso } from '@/lib/sqlite';
+import type { AuditAction, LoginAttempt, UserSession } from '@/types/database';
 
 // ──────────────────────────────────────────────
 // Audit Logging
@@ -10,7 +10,6 @@ import { hashApiKey } from '@/lib/api-key-utils';
  * Write an audit log entry. Fire-and-forget — never fails the parent request.
  */
 export async function createAuditLog(
-  client: SupabaseClient,
   params: {
     userId: string;
     action: AuditAction;
@@ -23,20 +22,25 @@ export async function createAuditLog(
   }
 ): Promise<void> {
   try {
-    const { error } = await client.from('audit_logs').insert({
+    const db = getDb();
+    db.prepare(`
+      INSERT INTO audit_logs (
+        id, user_id, organization_id, action, resource_type, resource_id, metadata, ip_address, user_agent, timestamp
+      ) VALUES (
+        @id, @user_id, @organization_id, @action, @resource_type, @resource_id, @metadata, @ip_address, @user_agent, @timestamp
+      )
+    `).run({
+      id: crypto.randomUUID(),
       user_id: params.userId,
-      action: params.action,
-      ip_address: params.ipAddress,
-      user_agent: params.userAgent || null,
       organization_id: params.organizationId || null,
+      action: params.action,
       resource_type: params.resourceType || null,
       resource_id: params.resourceId || null,
-      metadata: params.metadata || {},
+      metadata: JSON.stringify(params.metadata || {}),
+      ip_address: params.ipAddress,
+      user_agent: params.userAgent || null,
+      timestamp: nowIso(),
     });
-
-    if (error) {
-      console.error('Failed to write audit log:', error);
-    }
   } catch (err) {
     // Audit logging must never break the caller
     console.error('Audit log error:', err);
@@ -51,7 +55,6 @@ export async function createAuditLog(
  * Record a login attempt (success or failure).
  */
 export async function recordLoginAttempt(
-  client: SupabaseClient,
   params: {
     email: string;
     userId?: string;
@@ -62,14 +65,21 @@ export async function recordLoginAttempt(
   }
 ): Promise<void> {
   try {
-    await client.from('login_attempts').insert({
-      email: params.email,
-      user_id: params.userId || null,
-      ip_address: params.ipAddress,
-      user_agent: params.userAgent || null,
-      success: params.success,
-      failure_reason: params.failureReason || null,
-    });
+    const db = getDb();
+    db.prepare(`
+      INSERT INTO login_attempts (
+        id, email, user_id, ip_address, user_agent, success, failure_reason, timestamp
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      crypto.randomUUID(),
+      params.email.toLowerCase(),
+      params.userId || null,
+      params.ipAddress,
+      params.userAgent || null,
+      params.success ? 1 : 0,
+      params.failureReason || null,
+      nowIso()
+    );
   } catch (err) {
     console.error('Failed to record login attempt:', err);
   }
@@ -80,28 +90,23 @@ export async function recordLoginAttempt(
  * Returns true if the account/IP should be temporarily locked.
  */
 export async function isLoginThrottled(
-  client: SupabaseClient,
   email: string,
   ipAddress: string,
   windowMinutes: number = 15,
   maxAttempts: number = 10
 ): Promise<boolean> {
   try {
+    const db = getDb();
     const windowStart = new Date(Date.now() - windowMinutes * 60 * 1000).toISOString();
+    const row = db.prepare(`
+      SELECT COUNT(1) AS count
+      FROM login_attempts
+      WHERE success = 0
+        AND timestamp >= ?
+        AND (email = ? OR ip_address = ?)
+    `).get(windowStart, email.toLowerCase(), ipAddress) as { count?: number } | undefined;
 
-    const { count, error } = await client
-      .from('login_attempts')
-      .select('*', { count: 'exact', head: true })
-      .or(`email.eq.${email},ip_address.eq.${ipAddress}`)
-      .eq('success', false)
-      .gte('timestamp', windowStart);
-
-    if (error) {
-      console.error('Login throttle check error:', error);
-      return false; // Fail open — don't lock users out because of a query error
-    }
-
-    return (count ?? 0) >= maxAttempts;
+    return (row?.count ?? 0) >= maxAttempts;
   } catch (err) {
     console.error('Login throttle error:', err);
     return false;
@@ -116,7 +121,6 @@ export async function isLoginThrottled(
  * Create a user session record when a user logs in.
  */
 export async function createUserSession(
-  client: SupabaseClient,
   params: {
     userId: string;
     tokenHash: string;
@@ -126,24 +130,31 @@ export async function createUserSession(
   }
 ): Promise<void> {
   try {
-    // Mark all other sessions as not current
-    await client
-      .from('user_sessions')
-      .update({ is_current: false })
-      .eq('user_id', params.userId)
-      .eq('is_current', true);
+    const db = getDb();
+    const now = nowIso();
 
-    // Insert new session
-    await client.from('user_sessions').insert({
-      user_id: params.userId,
-      token_hash: params.tokenHash,
-      ip_address: params.ipAddress,
-      user_agent: params.userAgent,
-      device_label: parseDeviceLabel(params.userAgent),
-      is_current: true,
-      expires_at: params.expiresAt,
-      last_active_at: new Date().toISOString(),
-    });
+    db.prepare(`
+      UPDATE user_sessions
+      SET is_current = 0
+      WHERE user_id = ? AND is_current = 1 AND revoked_at IS NULL
+    `).run(params.userId);
+
+    db.prepare(`
+      INSERT INTO user_sessions (
+        id, user_id, token_hash, ip_address, user_agent, device_label,
+        is_current, created_at, expires_at, last_active_at
+      ) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
+    `).run(
+      crypto.randomUUID(),
+      params.userId,
+      params.tokenHash,
+      params.ipAddress,
+      params.userAgent,
+      parseDeviceLabel(params.userAgent),
+      now,
+      params.expiresAt,
+      now
+    );
   } catch (err) {
     console.error('Failed to create user session:', err);
   }
@@ -153,27 +164,27 @@ export async function createUserSession(
  * Revoke a user session (e.g. on logout).
  */
 export async function revokeUserSession(
-  client: SupabaseClient,
   userId: string,
   tokenHash?: string
 ): Promise<void> {
   try {
-    const query = client
-      .from('user_sessions')
-      .update({
-        is_current: false,
-        revoked_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId);
+    const db = getDb();
+    const now = nowIso();
 
     if (tokenHash) {
-      query.eq('token_hash', tokenHash);
-    } else {
-      // Revoke all sessions for this user
-      query.eq('is_current', true);
+      db.prepare(`
+        UPDATE user_sessions
+        SET is_current = 0, revoked_at = ?
+        WHERE user_id = ? AND token_hash = ? AND revoked_at IS NULL
+      `).run(now, userId, tokenHash);
+      return;
     }
 
-    await query;
+    db.prepare(`
+      UPDATE user_sessions
+      SET is_current = 0, revoked_at = ?
+      WHERE user_id = ? AND is_current = 1 AND revoked_at IS NULL
+    `).run(now, userId);
   } catch (err) {
     console.error('Failed to revoke user session:', err);
   }
@@ -183,20 +194,44 @@ export async function revokeUserSession(
  * Get all active sessions for a user (for "active sessions" management page).
  */
 export async function getUserSessions(
-  client: SupabaseClient,
   userId: string
 ): Promise<UserSession[]> {
   try {
-    const { data, error } = await client
-      .from('user_sessions')
-      .select('*')
-      .eq('user_id', userId)
-      .is('revoked_at', null)
-      .gte('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false });
+    const db = getDb();
+    const now = nowIso();
+    const rows = db.prepare(`
+      SELECT * FROM user_sessions
+      WHERE user_id = ?
+        AND revoked_at IS NULL
+        AND expires_at >= ?
+      ORDER BY created_at DESC
+    `).all(userId, now) as Array<{
+      id: string;
+      user_id: string;
+      token_hash: string;
+      ip_address: string;
+      user_agent: string;
+      device_label: string | null;
+      is_current: number;
+      created_at: string;
+      expires_at: string;
+      last_active_at: string;
+      revoked_at: string | null;
+    }>;
 
-    if (error) throw error;
-    return (data ?? []) as UserSession[];
+    return rows.map((row) => ({
+      id: row.id,
+      user_id: row.user_id,
+      token_hash: row.token_hash,
+      ip_address: row.ip_address,
+      user_agent: row.user_agent,
+      device_label: row.device_label ?? undefined,
+      is_current: row.is_current === 1,
+      created_at: row.created_at,
+      expires_at: row.expires_at,
+      last_active_at: row.last_active_at,
+      revoked_at: row.revoked_at ?? undefined,
+    }));
   } catch (err) {
     console.error('Failed to fetch user sessions:', err);
     return [];
@@ -207,14 +242,16 @@ export async function getUserSessions(
  * Update last_active_at on the user table (call on meaningful actions).
  */
 export async function touchUserActivity(
-  client: SupabaseClient,
   userId: string
 ): Promise<void> {
   try {
-    await client
-      .from('users')
-      .update({ last_active_at: new Date().toISOString() })
-      .eq('id', userId);
+    const db = getDb();
+    const now = nowIso();
+    db.prepare(`
+      UPDATE users
+      SET last_active_at = ?, updated_at = ?
+      WHERE id = ?
+    `).run(now, now, userId);
   } catch (err) {
     console.error('Failed to touch user activity:', err);
   }
