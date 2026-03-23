@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const rateLimitKey = `api_usage:${apiKeyRecord.user_id}`;
     const rateLimit = parseInt(process.env.RATE_LIMIT_API_PER_MINUTE || '60');
 
-    if (!checkRateLimit(rateLimitKey, rateLimit, 60000)) {
+    if (!(await checkRateLimit(rateLimitKey, rateLimit, 60000))) {
       // Log the attempt but return rate limited
       await logApiKeyUsage(
         apiKeyRecord.id,

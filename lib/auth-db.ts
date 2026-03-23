@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { getDb, nowIso } from '@/lib/sqlite';
+import { getDb, nowIso } from '@/lib/mongodb';
 import type {
   ApiKey,
   ApiKeyScope,
@@ -21,62 +21,6 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   preferred_channel: 'email',
 };
 
-interface UserRow {
-  id: string;
-  email: string;
-  password_hash: string;
-  name: string | null;
-  avatar_url: string | null;
-  phone: string | null;
-  company: string | null;
-  industry: string | null;
-  job_title: string | null;
-  bio: string | null;
-  timezone: string | null;
-  locale: string | null;
-  role: UserRole;
-  status: UserStatus;
-  subscription_tier: User['subscription_tier'];
-  email_verified: number;
-  two_factor_enabled: number;
-  onboarding_completed: number;
-  notification_preferences: string | null;
-  created_at: string;
-  updated_at: string;
-  last_sign_in_at: string | null;
-  last_active_at: string | null;
-  deleted_at: string | null;
-}
-
-interface ApiKeyRow {
-  id: string;
-  user_id: string;
-  organization_id: string | null;
-  name: string;
-  description: string | null;
-  key_hash: string;
-  key_preview: string;
-  scopes: string | null;
-  allowed_ips: string | null;
-  allowed_origins: string | null;
-  rate_limit_per_minute: number;
-  created_at: string;
-  revoked_at: string | null;
-  revoked_by: string | null;
-  is_active: number;
-  expires_at: string | null;
-  last_used_at: string | null;
-  last_used_ip: string | null;
-  usage_count: number;
-}
-
-interface SessionIdentityRow {
-  user_id: string;
-  email: string;
-  role: UserRole;
-  status: UserStatus;
-}
-
 export interface SessionIdentity {
   userId: string;
   email: string;
@@ -86,10 +30,6 @@ export interface SessionIdentity {
 
 export interface UserWithPassword extends User {
   password_hash: string;
-}
-
-function toBoolean(value: number | null | undefined): boolean {
-  return value === 1;
 }
 
 function parseJson<T>(value: string | null | undefined, fallback: T): T {
@@ -104,81 +44,21 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
   }
 }
 
-function mapUserRow(row: UserRow): User {
-  return {
-    id: row.id,
-    email: row.email,
-    name: row.name ?? undefined,
-    avatar_url: row.avatar_url ?? undefined,
-    phone: row.phone ?? undefined,
-    company: row.company ?? undefined,
-    industry: row.industry ?? undefined,
-    job_title: row.job_title ?? undefined,
-    bio: row.bio ?? undefined,
-    timezone: row.timezone ?? 'UTC',
-    locale: row.locale ?? 'en-US',
-    role: row.role,
-    status: row.status,
-    subscription_tier: row.subscription_tier,
-    email_verified: toBoolean(row.email_verified),
-    two_factor_enabled: toBoolean(row.two_factor_enabled),
-    onboarding_completed: toBoolean(row.onboarding_completed),
-    notification_preferences: parseJson<NotificationPreferences>(
-      row.notification_preferences,
-      DEFAULT_NOTIFICATION_PREFERENCES
-    ),
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-    last_sign_in_at: row.last_sign_in_at ?? undefined,
-    last_active_at: row.last_active_at ?? undefined,
-    deleted_at: row.deleted_at ?? undefined,
-  };
-}
-
-function mapApiKeyRow(row: ApiKeyRow): ApiKey {
-  return {
-    id: row.id,
-    user_id: row.user_id,
-    organization_id: row.organization_id ?? undefined,
-    name: row.name,
-    description: row.description ?? undefined,
-    key_hash: row.key_hash,
-    key_preview: row.key_preview,
-    scopes: parseJson<ApiKeyScope[]>(row.scopes, ['read']),
-    allowed_ips: parseJson<string[] | undefined>(row.allowed_ips, undefined),
-    allowed_origins: parseJson<string[] | undefined>(row.allowed_origins, undefined),
-    rate_limit_per_minute: row.rate_limit_per_minute,
-    created_at: row.created_at,
-    revoked_at: row.revoked_at ?? undefined,
-    revoked_by: row.revoked_by ?? undefined,
-    is_active: toBoolean(row.is_active),
-    expires_at: row.expires_at ?? undefined,
-    last_used_at: row.last_used_at ?? undefined,
-    last_used_ip: row.last_used_ip ?? undefined,
-    usage_count: row.usage_count,
-  };
-}
-
 export async function getUserByEmail(email: string): Promise<UserWithPassword | null> {
   const db = getDb();
-  const row = db
-    .prepare('SELECT * FROM users WHERE lower(email) = lower(?) LIMIT 1')
-    .get(email) as UserRow | undefined;
+  const row = await db.collection('users').findOne({ email: email.toLowerCase() });
 
   if (!row) {
     return null;
   }
 
-  return {
-    ...mapUserRow(row),
-    password_hash: row.password_hash,
-  };
+  return mapUserRow(row, true) as UserWithPassword;
 }
 
 export async function getUserProfile(userId: string): Promise<User | null> {
   const db = getDb();
-  const row = db.prepare('SELECT * FROM users WHERE id = ? LIMIT 1').get(userId) as UserRow | undefined;
-  return row ? mapUserRow(row) : null;
+  const row = await db.collection('users').findOne({ _id: userId });
+  return row ? mapUserRow(row, false) : null;
 }
 
 export async function createUserAccount(params: {
@@ -193,27 +73,34 @@ export async function createUserAccount(params: {
   const now = nowIso();
   const normalizedEmail = params.email.trim().toLowerCase();
 
-  db.prepare(`
-    INSERT INTO users (
-      id, email, password_hash, name, company, job_title,
-      role, status, subscription_tier, email_verified, two_factor_enabled, onboarding_completed,
-      notification_preferences, created_at, updated_at
-    ) VALUES (
-      @id, @email, @password_hash, @name, @company, @job_title,
-      'member', 'active', 'free', 0, 0, 0,
-      @notification_preferences, @created_at, @updated_at
-    )
-  `).run({
-    id,
+  const doc = {
+    _id: id,
     email: normalizedEmail,
     password_hash: params.passwordHash,
     name: params.name?.trim() || null,
+    avatar_url: null,
+    phone: null,
     company: params.company?.trim() || null,
+    industry: null,
     job_title: params.job_title?.trim() || null,
-    notification_preferences: JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES),
+    bio: null,
+    timezone: 'UTC',
+    locale: 'en-US',
+    role: 'member' as UserRole,
+    status: 'active' as UserStatus,
+    subscription_tier: 'free' as const,
+    email_verified: false,
+    two_factor_enabled: false,
+    onboarding_completed: false,
+    notification_preferences: DEFAULT_NOTIFICATION_PREFERENCES,
     created_at: now,
     updated_at: now,
-  });
+    last_sign_in_at: null,
+    last_active_at: null,
+    deleted_at: null,
+  };
+
+  await db.collection('users').insertOne(doc);
 
   const createdUser = await getUserProfile(id);
   if (!createdUser) {
@@ -247,8 +134,7 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
     'deleted_at',
   ]);
 
-  const setClauses: string[] = [];
-  const parameters: Record<string, unknown> = { id: userId };
+  const setDoc: Record<string, unknown> = {};
 
   for (const [rawKey, value] of Object.entries(updates)) {
     const key = rawKey as keyof User;
@@ -256,21 +142,14 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
       continue;
     }
 
-    setClauses.push(`${key} = @${key}`);
     if (key === 'notification_preferences') {
-      parameters[key] = JSON.stringify(value);
-    } else if (
-      key === 'email_verified' ||
-      key === 'two_factor_enabled' ||
-      key === 'onboarding_completed'
-    ) {
-      parameters[key] = value ? 1 : 0;
+      setDoc[key] = value;
     } else {
-      parameters[key] = value ?? null;
+      setDoc[key] = value;
     }
   }
 
-  if (setClauses.length === 0) {
+  if (Object.keys(setDoc).length === 0) {
     const existingUser = await getUserProfile(userId);
     if (!existingUser) {
       throw new Error('User not found');
@@ -278,10 +157,9 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
     return existingUser;
   }
 
-  parameters.updated_at = nowIso();
-  setClauses.push('updated_at = @updated_at');
+  setDoc.updated_at = nowIso();
 
-  db.prepare(`UPDATE users SET ${setClauses.join(', ')} WHERE id = @id`).run(parameters);
+  await db.collection('users').updateOne({ _id: userId }, { $set: setDoc });
 
   const updated = await getUserProfile(userId);
   if (!updated) {
@@ -293,42 +171,35 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
 export async function updateUserLastSignIn(userId: string): Promise<void> {
   const db = getDb();
   const now = nowIso();
-  db.prepare(`
-    UPDATE users
-    SET last_sign_in_at = ?, updated_at = ?
-    WHERE id = ?
-  `).run(now, now, userId);
+  await db.collection('users').updateOne(
+    { _id: userId },
+    { $set: { last_sign_in_at: now, updated_at: now } }
+  );
 }
 
 export async function updateUserPassword(userId: string, passwordHash: string): Promise<void> {
   const db = getDb();
   const now = nowIso();
-
-  db.prepare(`
-    UPDATE users
-    SET password_hash = ?, updated_at = ?
-    WHERE id = ?
-  `).run(passwordHash, now, userId);
+  await db.collection('users').updateOne(
+    { _id: userId },
+    { $set: { password_hash: passwordHash, updated_at: now } }
+  );
 }
 
 export async function getUserApiKeys(userId: string): Promise<ApiKey[]> {
   const db = getDb();
-  const rows = db
-    .prepare(`
-      SELECT * FROM api_keys
-      WHERE user_id = ? AND is_active = 1
-      ORDER BY created_at DESC
-    `)
-    .all(userId) as ApiKeyRow[];
+  const rows = await db
+    .collection('api_keys')
+    .find({ user_id: userId, is_active: true })
+    .sort({ created_at: -1 })
+    .toArray();
 
-  return rows.map(mapApiKeyRow);
+  return rows.map((row) => mapApiKeyRow(row));
 }
 
 export async function getApiKeyForUser(keyId: string, userId: string): Promise<ApiKey | null> {
   const db = getDb();
-  const row = db
-    .prepare('SELECT * FROM api_keys WHERE id = ? AND user_id = ? LIMIT 1')
-    .get(keyId, userId) as ApiKeyRow | undefined;
+  const row = await db.collection('api_keys').findOne({ _id: keyId, user_id: userId });
   return row ? mapApiKeyRow(row) : null;
 }
 
@@ -351,31 +222,31 @@ export async function createApiKey(
   const id = crypto.randomUUID();
   const now = nowIso();
 
-  db.prepare(`
-    INSERT INTO api_keys (
-      id, user_id, organization_id, name, description, key_hash, key_preview, scopes,
-      allowed_ips, allowed_origins, rate_limit_per_minute, created_at, is_active, expires_at, usage_count
-    ) VALUES (
-      @id, @user_id, @organization_id, @name, @description, @key_hash, @key_preview, @scopes,
-      @allowed_ips, @allowed_origins, @rate_limit_per_minute, @created_at, 1, @expires_at, 0
-    )
-  `).run({
-    id,
+  const doc = {
+    _id: id,
     user_id: userId,
     organization_id: extras?.organization_id || null,
     name,
     description: extras?.description || null,
     key_hash: keyHash,
     key_preview: keyPreview,
-    scopes: JSON.stringify(extras?.scopes || ['read']),
-    allowed_ips: extras?.allowed_ips ? JSON.stringify(extras.allowed_ips) : null,
-    allowed_origins: extras?.allowed_origins ? JSON.stringify(extras.allowed_origins) : null,
+    scopes: extras?.scopes || ['read'],
+    allowed_ips: extras?.allowed_ips || null,
+    allowed_origins: extras?.allowed_origins || null,
     rate_limit_per_minute: extras?.rate_limit_per_minute || 60,
     created_at: now,
+    revoked_at: null,
+    revoked_by: null,
+    is_active: true,
     expires_at: expiresAt || null,
-  });
+    last_used_at: null,
+    last_used_ip: null,
+    usage_count: 0,
+  };
 
-  const row = db.prepare('SELECT * FROM api_keys WHERE id = ? LIMIT 1').get(id) as ApiKeyRow | undefined;
+  await db.collection('api_keys').insertOne(doc);
+
+  const row = await db.collection('api_keys').findOne({ _id: id });
   if (!row) {
     throw new Error('Failed to create API key');
   }
@@ -387,13 +258,12 @@ export async function revokeApiKey(keyId: string, userId: string): Promise<ApiKe
   const db = getDb();
   const now = nowIso();
 
-  db.prepare(`
-    UPDATE api_keys
-    SET is_active = 0, revoked_at = ?, revoked_by = ?
-    WHERE id = ? AND user_id = ?
-  `).run(now, userId, keyId, userId);
+  await db.collection('api_keys').updateOne(
+    { _id: keyId, user_id: userId },
+    { $set: { is_active: false, revoked_at: now, revoked_by: userId } }
+  );
 
-  const row = db.prepare('SELECT * FROM api_keys WHERE id = ? LIMIT 1').get(keyId) as ApiKeyRow | undefined;
+  const row = await db.collection('api_keys').findOne({ _id: keyId });
   if (!row) {
     throw new Error('API key not found');
   }
@@ -405,15 +275,14 @@ export async function findApiKeyByHash(keyHash: string): Promise<ApiKey | null> 
   const db = getDb();
   const now = nowIso();
 
-  const row = db
-    .prepare(`
-      SELECT * FROM api_keys
-      WHERE key_hash = ?
-        AND is_active = 1
-        AND (expires_at IS NULL OR expires_at > ?)
-      LIMIT 1
-    `)
-    .get(keyHash, now) as ApiKeyRow | undefined;
+  const row = await db.collection('api_keys').findOne({
+    key_hash: keyHash,
+    is_active: true,
+    $or: [
+      { expires_at: null },
+      { expires_at: { $gt: now } },
+    ],
+  });
 
   return row ? mapApiKeyRow(row) : null;
 }
@@ -438,16 +307,8 @@ export async function logApiKeyUsage(
     const db = getDb();
     const now = nowIso();
 
-    db.prepare(`
-      INSERT INTO api_key_usage_logs (
-        id, api_key_id, user_id, organization_id, timestamp, endpoint, method, status_code,
-        response_time_ms, ip_address, user_agent, request_body_size, response_body_size, error_message
-      ) VALUES (
-        @id, @api_key_id, @user_id, @organization_id, @timestamp, @endpoint, @method, @status_code,
-        @response_time_ms, @ip_address, @user_agent, @request_body_size, @response_body_size, @error_message
-      )
-    `).run({
-      id: crypto.randomUUID(),
+    await db.collection('api_key_usage_logs').insertOne({
+      _id: crypto.randomUUID(),
       api_key_id: apiKeyId,
       user_id: userId,
       organization_id: extras?.organizationId || null,
@@ -463,11 +324,13 @@ export async function logApiKeyUsage(
       error_message: extras?.errorMessage || null,
     });
 
-    db.prepare(`
-      UPDATE api_keys
-      SET usage_count = usage_count + 1, last_used_at = ?, last_used_ip = ?
-      WHERE id = ?
-    `).run(now, ipAddress, apiKeyId);
+    await db.collection('api_keys').updateOne(
+      { _id: apiKeyId },
+      {
+        $inc: { usage_count: 1 },
+        $set: { last_used_at: now, last_used_ip: ipAddress },
+      }
+    );
   } catch (error) {
     console.error('Error logging API key usage:', error);
   }
@@ -475,32 +338,15 @@ export async function logApiKeyUsage(
 
 export async function getApiKeyUsageStats(apiKeyId: string): Promise<ApiKeyUsageLog[]> {
   const db = getDb();
-  const rows = db
-    .prepare(`
-      SELECT * FROM api_key_usage_logs
-      WHERE api_key_id = ?
-      ORDER BY timestamp DESC
-      LIMIT 100
-    `)
-    .all(apiKeyId) as Array<{
-      id: string;
-      api_key_id: string;
-      user_id: string;
-      organization_id: string | null;
-      timestamp: string;
-      endpoint: string;
-      method: HttpMethod;
-      status_code: number;
-      response_time_ms: number | null;
-      ip_address: string;
-      user_agent: string | null;
-      request_body_size: number | null;
-      response_body_size: number | null;
-      error_message: string | null;
-    }>;
+  const rows = await db
+    .collection('api_key_usage_logs')
+    .find({ api_key_id: apiKeyId })
+    .sort({ timestamp: -1 })
+    .limit(100)
+    .toArray();
 
   return rows.map((row) => ({
-    id: row.id,
+    id: row._id,
     api_key_id: row.api_key_id,
     user_id: row.user_id,
     organization_id: row.organization_id ?? undefined,
@@ -521,28 +367,26 @@ export async function getSessionIdentityByTokenHash(tokenHash: string): Promise<
   const db = getDb();
   const now = nowIso();
 
-  const row = db
-    .prepare(`
-      SELECT u.id AS user_id, u.email, u.role, u.status
-      FROM user_sessions s
-      JOIN users u ON u.id = s.user_id
-      WHERE s.token_hash = ?
-        AND s.revoked_at IS NULL
-        AND s.expires_at > ?
-      ORDER BY s.created_at DESC
-      LIMIT 1
-    `)
-    .get(tokenHash, now) as SessionIdentityRow | undefined;
+  const session = await db.collection('user_sessions').findOne({
+    token_hash: tokenHash,
+    revoked_at: null,
+    expires_at: { $gt: now },
+  });
 
-  if (!row) {
+  if (!session) {
+    return null;
+  }
+
+  const user = await db.collection('users').findOne({ _id: session.user_id });
+  if (!user) {
     return null;
   }
 
   return {
-    userId: row.user_id,
-    email: row.email,
-    role: row.role,
-    status: row.status,
+    userId: user._id,
+    email: user.email,
+    role: user.role,
+    status: user.status,
   };
 }
 
@@ -554,39 +398,100 @@ export async function createPasswordResetToken(
 ): Promise<void> {
   const db = getDb();
 
-  db.prepare(`
-    INSERT INTO password_reset_tokens (
-      id, user_id, token_hash, ip_address, expires_at, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?)
-  `).run(
-    crypto.randomUUID(),
-    userId,
-    tokenHash,
-    ipAddress || null,
-    expiresAt,
-    nowIso()
-  );
+  await db.collection('password_reset_tokens').insertOne({
+    _id: crypto.randomUUID(),
+    user_id: userId,
+    token_hash: tokenHash,
+    ip_address: ipAddress || null,
+    expires_at: expiresAt,
+    created_at: nowIso(),
+    used_at: null,
+  });
 }
 
 export async function consumePasswordResetToken(tokenHash: string): Promise<{ userId: string } | null> {
   const db = getDb();
   const now = nowIso();
 
-  const row = db
-    .prepare(`
-      SELECT id, user_id
-      FROM password_reset_tokens
-      WHERE token_hash = ?
-        AND used_at IS NULL
-        AND expires_at > ?
-      LIMIT 1
-    `)
-    .get(tokenHash, now) as { id: string; user_id: string } | undefined;
+  const row = await db.collection('password_reset_tokens').findOne({
+    token_hash: tokenHash,
+    used_at: null,
+    expires_at: { $gt: now },
+  });
 
   if (!row) {
     return null;
   }
 
-  db.prepare('UPDATE password_reset_tokens SET used_at = ? WHERE id = ?').run(now, row.id);
+  await db.collection('password_reset_tokens').updateOne(
+    { _id: row._id },
+    { $set: { used_at: now } }
+  );
+
   return { userId: row.user_id };
+}
+
+// ──────────────────────────────────────────────
+// Internal row mappers
+// ──────────────────────────────────────────────
+
+function mapUserRow(
+  row: Record<string, unknown>,
+  includePassword: boolean
+): User | UserWithPassword {
+  const user: User = {
+    id: row._id as string,
+    email: row.email as string,
+    name: (row.name as string | null) ?? undefined,
+    avatar_url: (row.avatar_url as string | null) ?? undefined,
+    phone: (row.phone as string | null) ?? undefined,
+    company: (row.company as string | null) ?? undefined,
+    industry: (row.industry as string | null) ?? undefined,
+    job_title: (row.job_title as string | null) ?? undefined,
+    bio: (row.bio as string | null) ?? undefined,
+    timezone: (row.timezone as string) ?? 'UTC',
+    locale: (row.locale as string) ?? 'en-US',
+    role: row.role as UserRole,
+    status: row.status as UserStatus,
+    subscription_tier: row.subscription_tier as User['subscription_tier'],
+    email_verified: (row.email_verified as boolean) ?? false,
+    two_factor_enabled: (row.two_factor_enabled as boolean) ?? false,
+    onboarding_completed: (row.onboarding_completed as boolean) ?? false,
+    notification_preferences:
+      (row.notification_preferences as NotificationPreferences) ?? DEFAULT_NOTIFICATION_PREFERENCES,
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
+    last_sign_in_at: (row.last_sign_in_at as string | null) ?? undefined,
+    last_active_at: (row.last_active_at as string | null) ?? undefined,
+    deleted_at: (row.deleted_at as string | null) ?? undefined,
+  };
+
+  if (includePassword) {
+    return { ...user, password_hash: row.password_hash as string };
+  }
+  return user;
+}
+
+function mapApiKeyRow(row: Record<string, unknown>): ApiKey {
+  return {
+    id: row._id as string,
+    user_id: row.user_id as string,
+    organization_id: (row.organization_id as string | null) ?? undefined,
+    name: row.name as string,
+    description: (row.description as string | null) ?? undefined,
+    key_hash: row.key_hash as string,
+    key_preview: row.key_preview as string,
+    scopes: (row.scopes as ApiKeyScope[]) ?? ['read'],
+    allowed_ips: (row.allowed_ips as string[] | null | undefined) ?? undefined,
+    allowed_origins: (row.allowed_origins as string[] | null | undefined) ?? undefined,
+    rate_limit_per_minute: (row.rate_limit_per_minute as number) ?? 60,
+    created_at: row.created_at as string,
+    revoked_at: (row.revoked_at as string | null) ?? undefined,
+    revoked_by: (row.revoked_by as string | null) ?? undefined,
+    is_active: (row.is_active as boolean) ?? false,
+    expires_at: (row.expires_at as string | null) ?? undefined,
+    last_used_at: (row.last_used_at as string | null) ?? undefined,
+    last_used_ip: (row.last_used_ip as string | null) ?? undefined,
+    usage_count: (row.usage_count as number) ?? 0,
+  };
 }

@@ -20,7 +20,7 @@ export async function DELETE(request: NextRequest) {
 
     // Rate limiting
     const rateLimitKey = `api_key_revoke:${auth.userId}`;
-    if (!checkRateLimit(rateLimitKey, 50, 3600000)) { // 50 per hour
+    if (!(await checkRateLimit(rateLimitKey, 50, 3600000))) { // 50 per hour
       return createErrorResponseObj(
         ErrorCode.RATE_LIMIT_EXCEEDED,
         'Too many API key revocation requests. Please try again later.'

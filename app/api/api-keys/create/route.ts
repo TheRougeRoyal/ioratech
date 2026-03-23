@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Rate limiting
     const rateLimitKey = `api_key_create:${auth.userId}`;
-    if (!checkRateLimit(rateLimitKey, 30, 3600000)) { // 30 per hour
+    if (!(await checkRateLimit(rateLimitKey, 30, 3600000))) { // 30 per hour
       return createErrorResponseObj(
         ErrorCode.RATE_LIMIT_EXCEEDED,
         'Too many API key creation requests. Please try again later.'

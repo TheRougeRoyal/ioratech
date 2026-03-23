@@ -44,29 +44,12 @@ function isPublicRoute(pathname: string): boolean {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public routes through
-  if (isPublicRoute(pathname)) {
-    // If user is already authenticated and tries to access login/signup, redirect to dashboard
-    const authToken = request.cookies.get('auth_token')?.value;
-    if (authToken && (pathname === '/login' || pathname === '/signup')) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-    return NextResponse.next();
+  // Redirect landing and auth pages directly to the dashboard
+  if (pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/request-access') {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Check for auth token cookie
-  const authToken = request.cookies.get('auth_token')?.value;
-
-  if (!authToken) {
-    // Redirect to login with the original URL as a callback parameter
-    const loginUrl = new URL('/login', request.url);
-    if (pathname !== '/') {
-      loginUrl.searchParams.set('callbackUrl', pathname);
-    }
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Token exists — allow the request through
+  // Bypass any authentication checks for all routes and allow direct access.
   return NextResponse.next();
 }
 
