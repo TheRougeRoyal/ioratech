@@ -1,4 +1,5 @@
 const nextConfig = {
+  transpilePackages: ['recharts', 'firebase'],
   images: {
     unoptimized: true,
   },
