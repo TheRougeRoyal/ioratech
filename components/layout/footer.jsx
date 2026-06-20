@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
@@ -34,11 +35,14 @@ export function Footer() {
       <div className="container py-16">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
           <div className="col-span-2">
-            <Link href="/" className="flex items-center space-x-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground">
-                <span className="text-lg font-bold text-background">I</span>
-              </div>
-              <span className="text-xl font-semibold">Iora</span>
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/logo.png"
+                alt="Ioratech Logo"
+                width={160}
+                height={40}
+                className="h-10 w-auto"
+              />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs">
               Operational climate intelligence for strategic decision-making. Built for enterprises.

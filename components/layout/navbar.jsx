@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Menu, X } from "lucide-react";
@@ -30,11 +31,15 @@ export function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-all duration-300">
       <div className="max-w-5xl mx-auto flex items-center justify-between px-4 h-14">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center space-x-2 group">
-          <div className="flex h-6 w-6 items-center justify-center rounded bg-foreground dark:bg-primary transition-transform group-hover:scale-105">
-            <span className="text-xs font-bold text-background dark:text-primary-foreground">I</span>
-          </div>
-          <span className="text-sm font-semibold tracking-tight">Iora</span>
+        <Link href="/" className="flex items-center group">
+          <Image
+            src="/logo.png"
+            alt="Ioratech Logo"
+            width={140}
+            height={32}
+            className="h-8 w-auto"
+            priority
+          />
         </Link>
 
         {/* Desktop Nav Links */}
