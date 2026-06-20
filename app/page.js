@@ -5,6 +5,7 @@ import { CapabilitiesSection } from "@/components/landing/capabilities-section";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { IndustriesSection } from "@/components/landing/industries-section";
 import { PricingSection } from "@/components/landing/pricing-section";
+import { ContactSection } from "@/components/landing/contact-section";
 
 export default function HomePage() {
   return (
@@ -15,6 +16,7 @@ export default function HomePage() {
       <HowItWorksSection />
       <IndustriesSection />
       <PricingSection />
+      <ContactSection />
       <Footer />
     </main>
   );
