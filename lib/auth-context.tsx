@@ -21,7 +21,7 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password", "/request-access"];
+const AUTH_PATHS = ["/login", "/signup", "/forgot-password", "/request-access"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -39,10 +39,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
-    if (!user && !isPublic) {
+    const isAuthPage = AUTH_PATHS.some((p) => pathname.startsWith(p));
+    const isDashboard = pathname.startsWith("/dashboard");
+    if (!user && isDashboard) {
       router.push("/login");
-    } else if (user && isPublic) {
+    } else if (user && isAuthPage) {
       router.push("/dashboard");
     }
   }, [user, loading, pathname, router]);
