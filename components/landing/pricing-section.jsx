@@ -20,6 +20,7 @@ const plans = [
       "Community support",
     ],
     cta: "Get Started",
+    href: "/request-access",
     popular: false,
     variant: "outline",
   },
@@ -38,6 +39,7 @@ const plans = [
       "Quarterly reviews",
     ],
     cta: "Request Pricing",
+    href: "/contact",
     popular: true,
     variant: "default",
   },
@@ -57,6 +59,7 @@ const plans = [
       "On-premise option",
     ],
     cta: "Talk to Sales",
+    href: "/contact",
     popular: false,
     variant: "outline",
   },
@@ -114,7 +117,7 @@ export function PricingSection() {
                   </CardContent>
                 </div>
                 <CardFooter className="pt-6 pb-8">
-                  <Link href="/request-access" className="w-full">
+                  <Link href={plan.href} className="w-full">
                     <Button
                       className="w-full rounded-md h-10 text-xs font-medium"
                       variant={plan.variant}

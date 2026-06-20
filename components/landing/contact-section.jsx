@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,9 +35,11 @@ export function ContactSection() {
                     aakashr@lysandragroup.com
                   </a>
                 </div>
-                <Button asChild variant="outline" className="mt-2 rounded-md">
-                  <a href="mailto:aakashr@lysandragroup.com">Send an Email</a>
-                </Button>
+                <Link href="/contact" className="w-full">
+                  <Button variant="outline" className="mt-2 rounded-md w-full">
+                    Send a Message
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

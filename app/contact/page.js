@@ -1,61 +1,183 @@
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Loader2, CheckCircle } from "lucide-react";
 
 export default function ContactPage() {
-  return (
-    <main className="min-h-screen">
-      <Navbar />
-      <section className="pt-28 pb-20">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <h1 className="text-4xl font-semibold tracking-tight mb-6">Contact Us</h1>
-          <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-            Have questions about Iora Technology or want to discuss a partnership?
-            We'd love to hear from you.
-          </p>
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    company: "",
+    subject: "",
+    message: "",
+  });
 
-          <div className="space-y-6">
-            <div className="p-6 rounded-xl border border-border/50 bg-card">
-              <h2 className="text-lg font-semibold mb-2">General Inquiries</h2>
-              <p className="text-sm text-muted-foreground mb-3">
-                For general questions about our platform and services.
-              </p>
-              <a
-                href="mailto:aakashr@lysandragroup.com"
-                className="text-sm font-medium hover:underline"
-              >
-                aakashr@lysandragroup.com
-              </a>
-            </div>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setLoading(false);
+    setSubmitted(true);
+  };
 
-            <div className="p-6 rounded-xl border border-border/50 bg-card">
-              <h2 className="text-lg font-semibold mb-2">Sales</h2>
-              <p className="text-sm text-muted-foreground mb-3">
-                Interested in enterprise plans or custom integrations?
+  if (submitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-muted/20">
+        <div className="w-full max-w-md text-center">
+          <Card className="border-border/50 bg-card">
+            <CardContent className="pt-12 pb-8">
+              <div className="flex justify-center mb-6">
+                <div className="h-14 w-14 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/20">
+                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              <h2 className="text-xl font-semibold mb-2">Message Received</h2>
+              <p className="text-sm text-muted-foreground mb-8">
+                Thank you for reaching out. Our team will get back to you within 1-2 business days.
               </p>
-              <a
-                href="mailto:aakashr@lysandragroup.com"
-                className="text-sm font-medium hover:underline"
-              >
-                aakashr@lysandragroup.com
-              </a>
-            </div>
-
-            <div className="p-6 rounded-xl border border-border/50 bg-card">
-              <h2 className="text-lg font-semibold mb-2">Support</h2>
-              <p className="text-sm text-muted-foreground mb-3">
-                Need help with your account or the platform?
-              </p>
-              <a
-                href="mailto:aakashr@lysandragroup.com"
-                className="text-sm font-medium hover:underline"
-              >
-                aakashr@lysandragroup.com
-              </a>
-            </div>
-          </div>
+              <Link href="/">
+                <Button variant="outline" className="rounded-md">Return to Home</Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
-      </section>
-      <Footer />
-    </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-muted/20">
+      <div className="w-full max-w-md">
+        <Link
+          href="/"
+          className="inline-flex items-center text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground mb-6"
+        >
+          <ArrowLeft className="h-3.5 w-3.5 mr-2" />
+          Back to home
+        </Link>
+
+        <Card className="border-border/50 bg-card">
+          <CardHeader className="text-center pb-4">
+            <div className="flex justify-center mb-4">
+              <div className="h-8 w-8 rounded bg-foreground flex items-center justify-center">
+                <span className="text-sm font-bold text-background">I</span>
+              </div>
+            </div>
+            <CardTitle className="text-xl tracking-tight">Contact Us</CardTitle>
+            <CardDescription className="text-xs mt-1">
+              Have a question or want to discuss a partnership? Send us a message.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="firstName" className="text-xs font-medium">First Name</Label>
+                  <Input
+                    id="firstName"
+                    placeholder="John"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    required
+                    className="h-9 text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="lastName" className="text-xs font-medium">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    placeholder="Smith"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    required
+                    className="h-9 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-medium">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@company.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="company" className="text-xs font-medium">Company</Label>
+                <Input
+                  id="company"
+                  placeholder="Acme Corporation"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="subject" className="text-xs font-medium">Subject</Label>
+                <Select
+                  value={formData.subject}
+                  onValueChange={(value) => setFormData({ ...formData, subject: value })}
+                >
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Select a topic" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">General Inquiry</SelectItem>
+                    <SelectItem value="sales">Talk to Sales</SelectItem>
+                    <SelectItem value="support">Support</SelectItem>
+                    <SelectItem value="partnership">Partnership</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="message" className="text-xs font-medium">Message</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Tell us how we can help..."
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  required
+                  rows={4}
+                  className="text-sm resize-none"
+                />
+              </div>
+              <Button type="submit" className="w-full h-9 text-sm bg-foreground text-background hover:bg-foreground/90 mt-2" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send Message"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-center border-t border-border/30 pt-4">
+            <p className="text-xs text-muted-foreground">
+              Prefer email?{" "}
+              <a href="mailto:aakashr@lysandragroup.com" className="text-foreground hover:underline font-medium">
+                aakashr@lysandragroup.com
+              </a>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
   );
 }
