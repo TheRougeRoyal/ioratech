@@ -1,126 +1,72 @@
-import { NextRequest } from 'next/server';
-import { createApiKey } from '@/lib/auth-db';
-import { generateApiKey, hashApiKey, createApiKeyPreview, sanitizeInput } from '@/lib/api-key-utils';
-import { createResponse, ErrorCode, createErrorResponseObj } from '@/lib/api-response';
-import { requireAuth } from '@/lib/auth-middleware';
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
-import { createAuditLog } from '@/lib/audit';
-import type { ApiKeyCreateRequest, ApiKeyCreateResponse } from '@/types/api';
+import { NextRequest } from "next/server";
+import { createResponse, ErrorCode, createErrorResponseObj } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth-middleware";
+import { getDocsByQuery, createDoc } from "@/lib/firestore";
+import { generateApiKey, hashApiKey, createApiKeyPreview, sanitizeInput } from "@/lib/api-key-utils";
+import { where } from "firebase/firestore";
+import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
-    // Require authentication
     const auth = await requireAuth(request);
-
     if (!auth.authenticated || !auth.userId) {
-      return createErrorResponseObj(
-        ErrorCode.UNAUTHORIZED,
-        'Unauthorized'
-      );
+      return createErrorResponseObj(ErrorCode.UNAUTHORIZED, "Unauthorized");
     }
 
-    // Rate limiting
-    const rateLimitKey = `api_key_create:${auth.userId}`;
-    if (!(await checkRateLimit(rateLimitKey, 30, 3600000))) { // 30 per hour
-      return createErrorResponseObj(
-        ErrorCode.RATE_LIMIT_EXCEEDED,
-        'Too many API key creation requests. Please try again later.'
-      );
-    }
-
-    // Parse request body
-    let body: ApiKeyCreateRequest;
+    let body: { name?: string; description?: string; expires_in_days?: number; scopes?: string[] };
     try {
       body = await request.json();
     } catch {
-      return createErrorResponseObj(
-        ErrorCode.INVALID_REQUEST,
-        'Invalid request body'
-      );
+      return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "Invalid request body");
     }
 
-    const { name, expires_in_days, description, scopes, allowed_ips, allowed_origins } = body;
+    const { name, description, expires_in_days, scopes } = body;
 
-    // Validate input
     if (!name || name.trim().length === 0) {
-      return createErrorResponseObj(
-        ErrorCode.INVALID_REQUEST,
-        'API key name is required'
-      );
+      return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "API key name is required");
     }
 
-    const sanitizedName = sanitizeInput(name);
-
-    // Validate expiration if provided
-    let expiresAt: string | undefined;
-    if (expires_in_days) {
-      if (expires_in_days < 1 || expires_in_days > 365) {
-        return createErrorResponseObj(
-          ErrorCode.INVALID_REQUEST,
-          'Expiration must be between 1 and 365 days'
-        );
-      }
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + expires_in_days);
-      expiresAt = expiryDate.toISOString();
-    }
-
-
-    // Generate new API key
     const apiKey = generateApiKey();
     const keyHash = hashApiKey(apiKey);
     const keyPreview = createApiKeyPreview(apiKey);
+    const id = crypto.randomUUID();
 
-    // Store in database
-    const createdKey = await createApiKey(
-      auth.userId,
-      sanitizedName,
-      keyHash,
-      keyPreview,
-      expiresAt,
-      {
-        description: description ? sanitizeInput(description) : undefined,
-        scopes: scopes || ['read'],
-        allowed_ips: allowed_ips,
-        allowed_origins: allowed_origins,
-      }
-    );
+    let expiresAt: string | undefined;
+    if (expires_in_days && expires_in_days >= 1 && expires_in_days <= 365) {
+      const d = new Date();
+      d.setDate(d.getDate() + expires_in_days);
+      expiresAt = d.toISOString();
+    }
 
-    // Audit log
-    const clientIp = getClientIp(request.headers);
-    const userAgent = request.headers.get('user-agent') || '';
-    createAuditLog({
-      userId: auth.userId,
-      action: 'api_key_created',
-      ipAddress: clientIp,
-      userAgent,
-      resourceType: 'api_key',
-      resourceId: createdKey.id,
-      metadata: { key_name: sanitizedName, scopes: scopes || ['read'] },
+    await createDoc("api_keys", id, {
+      user_id: auth.userId,
+      name: sanitizeInput(name),
+      description: description ? sanitizeInput(description) : null,
+      key_hash: keyHash,
+      key_preview: keyPreview,
+      scopes: scopes || ["read"],
+      is_active: true,
+      expires_at: expiresAt || null,
+      last_used_at: null,
+      last_used_ip: null,
+      usage_count: 0,
+      revoked_at: null,
     });
 
-    // Return the full key only on creation (never again)
-    const responseData: ApiKeyCreateResponse = {
-      success: true,
-      data: {
-        api_key: {
-          id: createdKey.id,
-          name: createdKey.name,
-          key: apiKey, // Full key - shown only once
-          key_preview: createdKey.key_preview,
-          scopes: createdKey.scopes || ['read'],
-          created_at: createdKey.created_at,
-          expires_at: createdKey.expires_at,
-        },
+    return createResponse(
+      {
+        id,
+        name: sanitizeInput(name),
+        key: apiKey,
+        key_preview: keyPreview,
+        scopes: scopes || ["read"],
+        expires_at: expiresAt || null,
       },
-    };
-
-    return createResponse(responseData, 'API key created successfully', 201);
-  } catch (error) {
-    console.error('API key create endpoint error:', error);
-    return createErrorResponseObj(
-      ErrorCode.INTERNAL_ERROR,
-      'Failed to create API key'
+      "API key created successfully",
+      201
     );
+  } catch (error) {
+    console.error("API key create error:", error);
+    return createErrorResponseObj(ErrorCode.INTERNAL_ERROR, "Failed to create API key");
   }
 }

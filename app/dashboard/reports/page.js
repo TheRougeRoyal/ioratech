@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { motion } from "framer-motion";
 import {
   Download,
   FileText,
@@ -21,7 +19,6 @@ import {
   MoreHorizontal,
   Filter,
   Inbox,
-  AlertCircle,
 } from "lucide-react";
 
 const reports = [
@@ -67,52 +64,41 @@ const reports = [
   },
 ];
 
-const reportTemplates = [
+const templates = [
   {
     id: "tpl-1",
     name: "Board Climate Brief",
     description: "Executive summary of emissions, risk signals, and mitigation actions.",
     frameworks: ["TCFD", "ISSB"],
-    estimatedTime: "20 min",
+    time: "20 min",
   },
   {
     id: "tpl-2",
     name: "CSRD Climate Package",
     description: "Structured ESRS E1 disclosure pack with policy, metrics, and targets.",
     frameworks: ["CSRD", "ESRS"],
-    estimatedTime: "35 min",
+    time: "35 min",
   },
   {
     id: "tpl-3",
     name: "Supplier Scope 3 Digest",
     description: "Category-level Scope 3 trends, confidence bands, and data quality notes.",
     frameworks: ["GHG Protocol"],
-    estimatedTime: "25 min",
+    time: "25 min",
   },
 ];
 
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
-};
-
-function ReportsLoadingState({ rows = 3 }) {
+function ReportSkeleton({ rows = 3 }) {
   return (
-    <div className="space-y-4">
-      {Array.from({ length: rows }).map((_, index) => (
-        <Card key={index} className="border-border/50">
-          <CardContent className="p-6 space-y-3">
-            <Skeleton className="h-5 w-56" />
-            <Skeleton className="h-4 w-36" />
-            <div className="flex gap-2 pt-1">
-              <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-5 w-16" />
+    <div className="space-y-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <Card key={i}>
+          <CardContent className="p-5 space-y-3">
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-3 w-32" />
+            <div className="flex gap-2">
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-4 w-12" />
             </div>
           </CardContent>
         </Card>
@@ -121,344 +107,243 @@ function ReportsLoadingState({ rows = 3 }) {
   );
 }
 
-function ReportsEmptyState({ title, description }) {
+function EmptyState({ title, description }) {
   return (
-    <Card className="border-border/50 border-dashed">
+    <Card className="border-dashed">
       <CardContent className="p-10 text-center">
-        <Inbox className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
-        <h3 className="text-base font-medium">{title}</h3>
-        <p className="text-sm text-muted-foreground mt-1">{description}</p>
+        <Inbox className="h-8 w-8 mx-auto text-muted-foreground/60 mb-2" />
+        <h3 className="text-sm font-medium">{title}</h3>
+        <p className="text-xs text-muted-foreground mt-1">{description}</p>
       </CardContent>
     </Card>
   );
 }
 
-function ReportsErrorState({ onRetry }) {
-  return (
-    <Alert variant="destructive">
-      <AlertCircle className="h-4 w-4" />
-      <AlertTitle>Unable to load reports</AlertTitle>
-      <AlertDescription className="flex items-center justify-between gap-4">
-        <span>There was a temporary issue fetching report data. Please try again.</span>
-        <Button variant="outline" size="sm" onClick={onRetry}>
-          Retry
-        </Button>
-      </AlertDescription>
-    </Alert>
-  );
-}
+const statusStyles = {
+  published: "text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-400",
+  draft: "text-muted-foreground",
+  "in-review": "text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-400",
+};
 
 export default function ReportsPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [reportItems, setReportItems] = useState([]);
-  const [templateItems, setTemplateItems] = useState([]);
-
-  const fetchReportData = () => {
-    setIsLoading(true);
-    setLoadError(false);
-
-    setTimeout(() => {
-      try {
-        setReportItems(reports);
-        setTemplateItems(reportTemplates);
-      } catch {
-        setLoadError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 450);
-  };
 
   useEffect(() => {
-    fetchReportData();
+    const t = setTimeout(() => {
+      setReportItems(reports);
+      setLoading(false);
+    }, 400);
+    return () => clearTimeout(t);
   }, []);
 
-  const publishedReports = reportItems.filter((report) => report.status === "published");
-  const draftReports = reportItems.filter((report) => report.status !== "published");
+  const published = reportItems.filter((r) => r.status === "published");
+  const drafts = reportItems.filter((r) => r.status !== "published");
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-      <motion.div variants={item} className="flex items-center justify-between">
-        <div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
-          <p className="text-muted-foreground">Generate and manage ESG disclosures and reports</p>
+          <p className="text-sm text-muted-foreground">
+            Generate and manage ESG disclosures and reports
+          </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
+            <Filter className="h-3.5 w-3.5 mr-1.5" />
             Filter
           </Button>
           <Button size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            Generate Report
+            <FileText className="h-3.5 w-3.5 mr-1.5" />
+            Generate
           </Button>
         </div>
-      </motion.div>
+      </div>
 
-      <Tabs defaultValue="all" className="space-y-6">
+      <Tabs defaultValue="all">
         <TabsList>
-          <TabsTrigger value="all">All Reports</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="published">Published</TabsTrigger>
           <TabsTrigger value="draft">Drafts</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
-          {loadError ? (
-            <ReportsErrorState onRetry={fetchReportData} />
-          ) : isLoading ? (
-            <ReportsLoadingState rows={3} />
+        <TabsContent value="all" className="mt-4">
+          {loading ? (
+            <ReportSkeleton />
           ) : reportItems.length === 0 ? (
-            <ReportsEmptyState
-              title="No reports yet"
-              description="Generate your first report to start tracking and sharing disclosures."
-            />
-          ) : reportItems.map((report, index) => (
-            <motion.div
-              key={report.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -2 }}
-            >
-              <Card className="border-border/50 hover:border-border hover:shadow-md transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
-                      <div className="p-3 rounded-lg bg-muted">
-                        <FileText className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold">{report.name}</h3>
-                          <Badge variant="outline" className={`text-xs ${
-                            report.status === "published" ? "text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950" :
-                            report.status === "draft" ? "text-muted-foreground" :
-                            "text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950"
-                          }`}>
-                            {report.status === "in-review" ? "In Review" : report.status}
-                          </Badge>
+            <EmptyState title="No reports yet" description="Generate your first report to get started." />
+          ) : (
+            <div className="space-y-3">
+              {reportItems.map((report) => (
+                <Card key={report.id} className="hover:bg-accent/50 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="p-2 rounded-md bg-muted shrink-0">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{report.type}</p>
-                        <div className="flex items-center space-x-4 mt-3">
-                          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            <span>{report.date}</span>
-                          </div>
-                          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                            <FileText className="h-3 w-3" />
-                            <span>{report.pages} pages</span>
-                          </div>
-                          {report.status === "published" && (
-                            <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                              <Download className="h-3 w-3" />
-                              <span>{report.downloads} downloads</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-2 mt-3">
-                          {report.frameworks.map((fw) => (
-                            <Badge key={fw} variant="secondary" className="text-[10px]">
-                              {fw}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium truncate">{report.name}</h3>
+                            <Badge variant="outline" className={`text-[10px] shrink-0 ${statusStyles[report.status]}`}>
+                              {report.status === "in-review" ? "In Review" : report.status}
                             </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">{report.type}</p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                            <span className="inline-flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {report.date}
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <FileText className="h-3 w-3" />
+                              {report.pages} pages
+                            </span>
+                            {report.status === "published" && (
+                              <span className="inline-flex items-center gap-1">
+                                <Download className="h-3 w-3" />
+                                {report.downloads}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-2">
+                            {report.frameworks.map((fw) => (
+                              <Badge key={fw} variant="secondary" className="text-[10px]">
+                                {fw}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Share2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="published" className="mt-4">
+          {loading ? (
+            <ReportSkeleton rows={2} />
+          ) : published.length === 0 ? (
+            <EmptyState title="No published reports" description="Finalize and publish a report." />
+          ) : (
+            <div className="space-y-3">
+              {published.map((report) => (
+                <Card key={report.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                          <span className="text-sm font-medium">{report.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {report.date}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <Download className="h-3 w-3" />
+                            {report.downloads}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          {report.frameworks.map((fw) => (
+                            <Badge key={fw} variant="secondary" className="text-[10px]">{fw}</Badge>
                           ))}
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="icon">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
+                      <Button variant="outline" size="sm">
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Open
                       </Button>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="published" className="space-y-4">
-          {loadError ? (
-            <ReportsErrorState onRetry={fetchReportData} />
-          ) : isLoading ? (
-            <ReportsLoadingState rows={2} />
-          ) : publishedReports.length === 0 ? (
-            <ReportsEmptyState
-              title="No published reports"
-              description="Finalize and publish a report to make it available for download."
-            />
-          ) : publishedReports.map((report) => (
-            <Card key={report.id} className="border-border/50">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-emerald-500" />
-                      <h3 className="font-medium">{report.name}</h3>
+        <TabsContent value="draft" className="mt-4">
+          {loading ? (
+            <ReportSkeleton rows={2} />
+          ) : drafts.length === 0 ? (
+            <EmptyState title="No drafts" description="Start a report draft to collaborate." />
+          ) : (
+            <div className="space-y-3">
+              {drafts.map((report) => (
+                <Card key={report.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{report.name}</span>
+                          <Badge variant="outline" className={`text-[10px] ${statusStyles[report.status]}`}>
+                            {report.status === "draft" ? "Draft" : "In Review"}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{report.type}</p>
+                      </div>
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        Edit
+                      </Button>
                     </div>
-                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center"><Calendar className="h-3 w-3 mr-1" />{report.date}</span>
-                      <span className="inline-flex items-center"><Download className="h-3 w-3 mr-1" />{report.downloads} downloads</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {report.frameworks.map((framework) => (
-                        <Badge key={framework} variant="secondary" className="text-[10px]">
-                          {framework}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                    Open
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="draft" className="space-y-4">
-          {loadError ? (
-            <ReportsErrorState onRetry={fetchReportData} />
-          ) : isLoading ? (
-            <ReportsLoadingState rows={2} />
-          ) : draftReports.length === 0 ? (
-            <ReportsEmptyState
-              title="No drafts in progress"
-              description="Start a report draft to collaborate before publishing."
-            />
-          ) : draftReports.map((report) => (
-            <Card key={report.id} className="border-border/50">
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">{report.name}</h3>
-                    <p className="text-xs text-muted-foreground">{report.type}</p>
-                  </div>
-                  <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950">
-                    {report.status === "draft" ? "Draft" : "In Review"}
-                  </Badge>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="inline-flex items-center"><Clock className="h-3 w-3 mr-1" />Last edited {report.date}</span>
-                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                    Continue editing
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="templates">
-          {loadError ? (
-            <ReportsErrorState onRetry={fetchReportData} />
-          ) : isLoading ? (
-            <ReportsLoadingState rows={3} />
-          ) : templateItems.length === 0 ? (
-            <ReportsEmptyState
-              title="No templates available"
-              description="Templates will appear here once your reporting library is configured."
-            />
+        <TabsContent value="templates" className="mt-4">
+          {loading ? (
+            <ReportSkeleton rows={3} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {templateItems.map((template) => (
-              <Card key={template.id} className="border-border/50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">{template.name}</CardTitle>
-                  <CardDescription>{template.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    {template.frameworks.map((framework) => (
-                      <Badge key={framework} variant="outline" className="text-[10px]">
-                        {framework}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="inline-flex items-center"><Clock className="h-3 w-3 mr-1" />{template.estimatedTime}</span>
-                    <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
-                      Use Template
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              {templates.map((tpl) => (
+                <Card key={tpl.id}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">{tpl.name}</CardTitle>
+                    <CardDescription className="text-xs">{tpl.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex flex-wrap gap-1">
+                      {tpl.frameworks.map((fw) => (
+                        <Badge key={fw} variant="outline" className="text-[10px]">{fw}</Badge>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {tpl.time}
+                      </span>
+                      <Button size="sm" variant="outline" className="h-7 text-xs">
+                        Use
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
         </TabsContent>
       </Tabs>
-
-      {/* Report Preview */}
-      <motion.div variants={item}>
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle className="text-base">Report Preview</CardTitle>
-            <CardDescription>Annual ESG Report 2024 - Page 1 of 84</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-muted/30 rounded-lg border border-border/50 p-8 min-h-[400px]">
-              <div className="max-w-2xl mx-auto space-y-6">
-                <div className="text-center space-y-4 pb-8 border-b border-border/50">
-                  <div className="flex justify-center">
-                    <div className="h-12 w-12 rounded-lg bg-foreground flex items-center justify-center">
-                      <span className="text-2xl font-bold text-background">I</span>
-                    </div>
-                  </div>
-                  <h1 className="text-3xl font-bold">Annual ESG Report</h1>
-                  <p className="text-lg text-muted-foreground">Fiscal Year 2024</p>
-                  <div className="flex items-center justify-center space-x-2 pt-4">
-                    {["TCFD", "GRI", "SASB"].map((tag) => (
-                      <Badge key={tag} variant="outline">{tag} Aligned</Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 py-6">
-                  <div className="text-center p-4 rounded-lg bg-background border border-border/50">
-                    <div className="text-2xl font-bold">-12.3%</div>
-                    <div className="text-xs text-muted-foreground">Emissions Reduction</div>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-background border border-border/50">
-                    <div className="text-2xl font-bold">100%</div>
-                    <div className="text-xs text-muted-foreground">Renewable Energy</div>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-background border border-border/50">
-                    <div className="text-2xl font-bold">A-</div>
-                    <div className="text-xs text-muted-foreground">CDP Score</div>
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>This report provides a comprehensive overview of our environmental, social, and governance performance for fiscal year 2024. Our commitment to sustainability continues to drive measurable progress across all key metrics.</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between mt-4">
-              <Button variant="outline" size="sm" disabled>
-                Previous
-              </Button>
-              <span className="text-sm text-muted-foreground">Page 1 of 84</span>
-              <Button variant="outline" size="sm">
-                Next
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
+    </div>
   );
 }

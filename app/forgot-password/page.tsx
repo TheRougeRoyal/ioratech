@@ -1,50 +1,40 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { resetPassword } from "@/lib/auth";
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     if (!email) {
-      setError('Email is required');
+      setError("Email is required");
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error?.message || 'Failed to send reset email');
-        return;
-      }
-
+      await resetPassword(email);
       setSuccess(true);
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-      console.error('Password reset error:', err);
+    } catch (err: any) {
+      const msg =
+        err.code === "auth/user-not-found"
+          ? "No account found with this email"
+          : "Failed to send reset email. Please try again.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -60,7 +50,8 @@ export default function ForgotPasswordPage() {
           <CardContent>
             <div className="space-y-4">
               <p className="text-gray-600">
-                If an account exists with this email, you will receive a password reset link.
+                A password reset link has been sent to <strong>{email}</strong>.
+                Check your inbox and follow the instructions.
               </p>
               <Button asChild className="w-full">
                 <Link href="/login">Back to Login</Link>
@@ -100,17 +91,13 @@ export default function ForgotPasswordPage() {
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-            >
-              {loading ? 'Sending...' : 'Send Reset Link'}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Sending..." : "Send Reset Link"}
             </Button>
           </form>
 
           <p className="text-center text-sm text-gray-600 mt-4">
-            Remember your password?{' '}
+            Remember your password?{" "}
             <Link href="/login" className="text-blue-600 hover:underline">
               Log in
             </Link>

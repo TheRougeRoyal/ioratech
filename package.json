@@ -1,11 +1,9 @@
 {
-    "name": "nextjs-mongo-template",
+    "name": "ioratech",
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "NODE_OPTIONS='--max-old-space-size=512' next dev --hostname 0.0.0.0 --port 3000",
-        "dev:no-reload": "next dev --hostname 0.0.0.0 --port 3000",
-        "dev:webpack": "next dev --hostname 0.0.0.0 --port 3000",
+        "dev": "next dev --port 3000",
         "build": "next build",
         "start": "next start"
     },
@@ -45,10 +43,11 @@
         "cmdk": "^1.1.1",
         "date-fns": "^4.1.0",
         "embla-carousel-react": "^8.6.0",
+        "firebase": "^12.15.0",
         "framer-motion": "^11.15.0",
         "input-otp": "^1.4.2",
+        "jose": "^6.2.3",
         "lucide-react": "^0.516.0",
-        "mongodb": "^6.21.0",
         "next": "14.2.3",
         "next-themes": "^0.4.6",
         "react": "^18",
@@ -72,6 +71,5 @@
         "postcss": "^8",
         "tailwindcss": "^3.4.1",
         "typescript": "5.9.3"
-    },
-    "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+    }
 }

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,8 +14,9 @@ import {
   AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import type { ApiKeyListResponse } from '@/types/api';
+} from "@/components/ui/alert-dialog";
+import { useAuth } from "@/lib/auth-context";
+import type { ApiKeyListResponse } from "@/types/api";
 
 interface ApiKey {
   id: string;
@@ -29,81 +30,65 @@ interface ApiKey {
 }
 
 export default function ApiKeysPage() {
+  const { getIdToken } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState("");
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
   const [selectedKeyId, setSelectedKeyId] = useState<string | null>(null);
-  const [showNewKey, setShowNewKey] = useState(false);
-  const [newKey, setNewKey] = useState<string>('');
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchApiKeys();
-  }, []);
-
-  const fetchApiKeys = async () => {
+  const fetchApiKeys = useCallback(async () => {
     try {
       setLoading(true);
-      setError('');
-
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/api-keys/list', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      setError("");
+      const token = await getIdToken();
+      const response = await fetch("/api/api-keys/list", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error?.message || 'Failed to load API keys');
+        setError(data.error?.message || "Failed to load API keys");
         return;
       }
-
       setApiKeys((data as ApiKeyListResponse).api_keys);
     } catch (err) {
-      setError('An error occurred. Please try again.');
-      console.error('Fetch API keys error:', err);
+      setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [getIdToken]);
 
-  const handleRevokeClick = (keyId: string) => {
-    setSelectedKeyId(keyId);
-    setRevokeDialogOpen(true);
-  };
+  useEffect(() => {
+    fetchApiKeys();
+  }, [fetchApiKeys]);
 
   const handleRevokeConfirm = async () => {
     if (!selectedKeyId) return;
-
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/api-keys/revoke', {
-        method: 'DELETE',
+      const token = await getIdToken();
+      const response = await fetch("/api/api-keys/revoke", {
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ api_key_id: selectedKeyId }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error?.message || 'Failed to revoke API key');
+        const data = await response.json();
+        setError(data.error?.message || "Failed to revoke API key");
         return;
       }
 
-      // Remove the key from the list
-      setApiKeys(apiKeys.filter(key => key.id !== selectedKeyId));
+      setApiKeys(apiKeys.filter((key) => key.id !== selectedKeyId));
       setRevokeDialogOpen(false);
       setSelectedKeyId(null);
     } catch (err) {
-      setError('An error occurred. Please try again.');
-      console.error('Revoke API key error:', err);
+      setError("An error occurred. Please try again.");
     }
   };
 
@@ -114,7 +99,7 @@ export default function ApiKeysPage() {
   };
 
   const formatDate = (date: string | null | undefined) => {
-    if (!date) return 'Never';
+    if (!date) return "Never";
     return new Date(date).toLocaleDateString();
   };
 
@@ -168,14 +153,15 @@ export default function ApiKeysPage() {
                       {!key.is_active && <Badge variant="secondary">Revoked</Badge>}
                       {isExpired(key.expires_at) && <Badge variant="secondary">Expired</Badge>}
                     </CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Created {formatDate(key.created_at)}
-                    </p>
+                    <p className="text-sm text-gray-600 mt-1">Created {formatDate(key.created_at)}</p>
                   </div>
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleRevokeClick(key.id)}
+                    onClick={() => {
+                      setSelectedKeyId(key.id);
+                      setRevokeDialogOpen(true);
+                    }}
                     disabled={!key.is_active}
                   >
                     Revoke
@@ -190,10 +176,9 @@ export default function ApiKeysPage() {
                     size="sm"
                     onClick={() => copyToClipboard(key.key_preview, key.id)}
                   >
-                    {copiedKeyId === key.id ? 'Copied!' : 'Copy'}
+                    {copiedKeyId === key.id ? "Copied!" : "Copy"}
                   </Button>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-gray-600">Last Used</p>

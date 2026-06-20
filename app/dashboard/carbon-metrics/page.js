@@ -20,16 +20,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Activity, Factory, Zap, Truck } from "lucide-react";
+import { Factory, Zap, Truck } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/metric-card";
 
-const COLORS = [
-  "hsl(221, 83%, 53%)",
-  "hsl(212, 95%, 68%)",
-  "hsl(216, 92%, 60%)",
-  "hsl(210, 98%, 78%)",
-  "hsl(199, 89%, 48%)",
-];
+const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
 const scopeBreakdownData = [
   { name: "Scope 1", value: 15400, description: "Direct emissions" },
@@ -91,38 +85,48 @@ const monthlyEmissions = [
   { month: "Dec", scope1: 1000, scope2: 1720, scope3: 3600 },
 ];
 
+const tooltipStyle = {
+  contentStyle: {
+    fontSize: "12px",
+  },
+};
+
 export default function CarbonMetricsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Carbon Metrics</h1>
-          <p className="text-muted-foreground">Detailed breakdown of emissions across all scopes</p>
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Carbon Metrics</h1>
+          <p className="text-sm text-muted-foreground">
+            Detailed breakdown of emissions across all scopes
+          </p>
         </div>
-        <Badge variant="secondary">FY 2024 Data</Badge>
+        <Badge variant="secondary">FY 2024</Badge>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
-          title="Scope 1 Emissions"
-          value="15,400 tCO2e"
+          title="Scope 1"
+          value="15,400"
+          unit="tCO2e"
           change="-5.2%"
           changeType="positive"
           description="YoY"
           icon={Factory}
         />
         <MetricCard
-          title="Scope 2 Emissions"
-          value="28,600 tCO2e"
+          title="Scope 2"
+          value="28,600"
+          unit="tCO2e"
           change="-8.1%"
           changeType="positive"
           description="YoY"
           icon={Zap}
         />
         <MetricCard
-          title="Scope 3 Emissions"
-          value="56,000 tCO2e"
+          title="Scope 3"
+          value="56,000"
+          unit="tCO2e"
           change="-14.5%"
           changeType="positive"
           description="YoY"
@@ -130,36 +134,31 @@ export default function CarbonMetricsPage() {
         />
       </div>
 
-      {/* Scope Distribution & Trend */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle>Emissions Distribution</CardTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Distribution</CardTitle>
             <CardDescription>Breakdown by emission scope</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={scopeBreakdownData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
+                  innerRadius={56}
+                  outerRadius={88}
                   paddingAngle={2}
                   dataKey="value"
                 >
-                  {scopeBreakdownData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {scopeBreakdownData.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                  formatter={(value) => [`${value.toLocaleString()} tCO2e`, ""]}
+                  {...tooltipStyle}
+                  formatter={(value) => [`${Number(value).toLocaleString()} tCO2e`, ""]}
                 />
                 <Legend />
               </PieChart>
@@ -167,76 +166,56 @@ export default function CarbonMetricsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle>Monthly Emissions Trend</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Monthly trend</CardTitle>
             <CardDescription>Emissions by scope over the year</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={monthlyEmissions}>
                 <defs>
-                  <linearGradient id="scope1Gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS[0]} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={COLORS[0]} stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="scope2Gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS[1]} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={COLORS[1]} stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="scope3Gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS[2]} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={COLORS[2]} stopOpacity={0} />
-                  </linearGradient>
+                  {COLORS.slice(0, 3).map((color, i) => (
+                    <linearGradient key={i} id={`s${i}Grad`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={color} stopOpacity={0.2} />
+                      <stop offset="95%" stopColor={color} stopOpacity={0} />
+                    </linearGradient>
+                  ))}
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
+                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip {...tooltipStyle} />
                 <Legend />
-                <Area type="monotone" dataKey="scope1" name="Scope 1" stroke={COLORS[0]} fill="url(#scope1Gradient)" />
-                <Area type="monotone" dataKey="scope2" name="Scope 2" stroke={COLORS[1]} fill="url(#scope2Gradient)" />
-                <Area type="monotone" dataKey="scope3" name="Scope 3" stroke={COLORS[2]} fill="url(#scope3Gradient)" />
+                <Area type="monotone" dataKey="scope1" name="Scope 1" stroke={COLORS[0]} fill="url(#s0Grad)" />
+                <Area type="monotone" dataKey="scope2" name="Scope 2" stroke={COLORS[1]} fill="url(#s1Grad)" />
+                <Area type="monotone" dataKey="scope3" name="Scope 3" stroke={COLORS[2]} fill="url(#s2Grad)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Detailed Scope Breakdown */}
-      <Tabs defaultValue="scope1" className="space-y-4">
+      <Tabs defaultValue="scope1">
         <TabsList>
-          <TabsTrigger value="scope1">Scope 1 Details</TabsTrigger>
-          <TabsTrigger value="scope2">Scope 2 Details</TabsTrigger>
-          <TabsTrigger value="scope3">Scope 3 Details</TabsTrigger>
+          <TabsTrigger value="scope1">Scope 1</TabsTrigger>
+          <TabsTrigger value="scope2">Scope 2</TabsTrigger>
+          <TabsTrigger value="scope3">Scope 3</TabsTrigger>
         </TabsList>
 
         <TabsContent value="scope1">
-          <Card className="border-border/50">
-            <CardHeader>
-              <CardTitle>Scope 1 Breakdown</CardTitle>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Scope 1 breakdown</CardTitle>
               <CardDescription>Direct emissions from owned or controlled sources</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={scope1Details} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis dataKey="category" type="category" tick={{ fill: "hsl(var(--muted-foreground))" }} width={150} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                    formatter={(value) => [`${value.toLocaleString()} tCO2e`, "Emissions"]}
-                  />
+                  <XAxis type="number" tick={{ fontSize: 11 }} />
+                  <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} width={140} />
+                  <Tooltip {...tooltipStyle} formatter={(v) => [`${Number(v).toLocaleString()} tCO2e`, "Emissions"]} />
                   <Bar dataKey="emissions" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -245,25 +224,18 @@ export default function CarbonMetricsPage() {
         </TabsContent>
 
         <TabsContent value="scope2">
-          <Card className="border-border/50">
-            <CardHeader>
-              <CardTitle>Scope 2 Breakdown</CardTitle>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Scope 2 breakdown</CardTitle>
               <CardDescription>Indirect emissions from purchased energy</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={scope2Details} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis dataKey="category" type="category" tick={{ fill: "hsl(var(--muted-foreground))" }} width={150} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                    formatter={(value) => [`${value.toLocaleString()} tCO2e`, "Emissions"]}
-                  />
+                  <XAxis type="number" tick={{ fontSize: 11 }} />
+                  <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} width={140} />
+                  <Tooltip {...tooltipStyle} formatter={(v) => [`${Number(v).toLocaleString()} tCO2e`, "Emissions"]} />
                   <Bar dataKey="emissions" fill={COLORS[1]} radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -272,25 +244,18 @@ export default function CarbonMetricsPage() {
         </TabsContent>
 
         <TabsContent value="scope3">
-          <Card className="border-border/50">
-            <CardHeader>
-              <CardTitle>Scope 3 Breakdown</CardTitle>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Scope 3 breakdown</CardTitle>
               <CardDescription>Value chain emissions across all categories</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={scope3Categories} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis dataKey="category" type="category" tick={{ fill: "hsl(var(--muted-foreground))" }} width={150} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                    formatter={(value) => [`${value.toLocaleString()} tCO2e`, "Emissions"]}
-                  />
+                  <XAxis type="number" tick={{ fontSize: 11 }} />
+                  <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} width={140} />
+                  <Tooltip {...tooltipStyle} formatter={(v) => [`${Number(v).toLocaleString()} tCO2e`, "Emissions"]} />
                   <Bar dataKey="emissions" fill={COLORS[2]} radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -299,69 +264,56 @@ export default function CarbonMetricsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Benchmarking & Intensity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle>Sector Benchmarking</CardTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Sector benchmarking</CardTitle>
             <CardDescription>Your emissions vs. industry average (ktCO2e)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={220}>
               <BarChart data={sectorBenchmark} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis dataKey="name" type="category" tick={{ fill: "hsl(var(--muted-foreground))" }} width={80} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
+                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={72} />
+                <Tooltip {...tooltipStyle} />
                 <Legend />
-                <Bar dataKey="yours" name="Your Company" fill={COLORS[0]} />
-                <Bar dataKey="industry" name="Industry Avg" fill="hsl(215, 20%, 65%)" />
+                <Bar dataKey="yours" name="Your company" fill={COLORS[0]} />
+                <Bar dataKey="industry" name="Industry avg" fill="hsl(var(--muted))" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle>Emissions Intensity Trend</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Intensity trend</CardTitle>
             <CardDescription>tCO2e per million USD revenue</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={220}>
               <LineChart data={intensityTrend}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="year" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
+                <XAxis dataKey="year" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip {...tooltipStyle} />
                 <Legend />
                 <Line
                   type="monotone"
                   dataKey="intensity"
                   name="Actual"
                   stroke={COLORS[0]}
-                  strokeWidth={2}
-                  dot={{ fill: COLORS[0] }}
+                  strokeWidth={1.5}
+                  dot={{ r: 3 }}
                   connectNulls={false}
                 />
                 <Line
                   type="monotone"
                   dataKey="target"
                   name="Target"
-                  stroke={COLORS[4]}
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
+                  stroke="hsl(var(--muted-foreground))"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 4"
                   dot={false}
                 />
               </LineChart>

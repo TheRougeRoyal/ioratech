@@ -2,32 +2,43 @@
 
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
-import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <DashboardSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
-      <div className={cn("transition-all duration-200 ease-in-out", "lg:pl-64")}>
+      <div className={cn("lg:pl-64", "min-h-screen flex flex-col")}>
         <DashboardHeader onMenuToggle={() => setSidebarOpen(true)} />
-        <AnimatePresence mode="wait">
-          <motion.main
-            key={pathname}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="p-4 sm:p-6 lg:p-8 max-w-[1400px]"
-          >
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-[1200px]">
             {children}
-          </motion.main>
-        </AnimatePresence>
+          </div>
+        </main>
       </div>
     </div>
   );

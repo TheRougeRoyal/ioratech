@@ -1,5 +1,4 @@
 const nextConfig = {
-  output: 'standalone',
   images: {
     unoptimized: true,
   },
@@ -12,8 +11,8 @@ const nextConfig = {
   async headers() {
     const configuredOrigins = process.env.CORS_ORIGINS
       ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
-      : []
-    const corsOriginHeader = configuredOrigins[0] || '*'
+      : [];
+    const corsOriginHeader = configuredOrigins[0] || '*';
 
     return [
       {

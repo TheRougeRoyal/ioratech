@@ -2,25 +2,18 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import {
-  AlertTriangle,
   TrendingUp,
   TrendingDown,
   MapPin,
   Thermometer,
-  Droplets,
-  Wind,
-  Factory,
   DollarSign,
 } from "lucide-react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
   Line,
   LineChart,
@@ -33,12 +26,7 @@ import {
 } from "recharts";
 import { MetricCard } from "@/components/dashboard/metric-card";
 
-const COLORS = [
-  "hsl(221, 83%, 53%)",
-  "hsl(212, 95%, 68%)",
-  "hsl(199, 89%, 48%)",
-  "hsl(215, 20%, 65%)",
-];
+const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
 const physicalRiskData = [
   { risk: "Heat Stress", score: 72, trend: "increasing" },
@@ -62,44 +50,69 @@ const riskDistribution = [
 ];
 
 const riskTrend = [
-  { quarter: "Q1 2023", physical: 38, transition: 52 },
-  { quarter: "Q2 2023", physical: 40, transition: 54 },
-  { quarter: "Q3 2023", physical: 39, transition: 55 },
-  { quarter: "Q4 2023", physical: 41, transition: 56 },
-  { quarter: "Q1 2024", physical: 42, transition: 58 },
+  { quarter: "Q1 23", physical: 38, transition: 52 },
+  { quarter: "Q2 23", physical: 40, transition: 54 },
+  { quarter: "Q3 23", physical: 39, transition: 55 },
+  { quarter: "Q4 23", physical: 41, transition: 56 },
+  { quarter: "Q1 24", physical: 42, transition: 58 },
 ];
 
 const assetRiskData = [
-  { location: "Houston Facility", physicalRisk: 75, transitionRisk: 62, value: 45 },
-  { location: "Rotterdam Port", physicalRisk: 68, transitionRisk: 55, value: 38 },
-  { location: "Shanghai Office", physicalRisk: 52, transitionRisk: 70, value: 28 },
-  { location: "Munich HQ", physicalRisk: 35, transitionRisk: 48, value: 52 },
-  { location: "Singapore Hub", physicalRisk: 45, transitionRisk: 42, value: 32 },
+  { location: "Houston", physical: 75, transition: 62 },
+  { location: "Rotterdam", physical: 68, transition: 55 },
+  { location: "Shanghai", physical: 52, transition: 70 },
+  { location: "Munich", physical: 35, transition: 48 },
+  { location: "Singapore", physical: 45, transition: 42 },
 ];
+
+const trendIcons = {
+  increasing: <TrendingUp className="h-3 w-3 text-red-500" />,
+  decreasing: <TrendingDown className="h-3 w-3 text-emerald-500" />,
+  stable: null,
+};
+
+function RiskList({ data }) {
+  return (
+    <div className="space-y-3">
+      {data.map((r) => (
+        <div key={r.risk} className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">{r.risk}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">{r.score}/100</span>
+              {trendIcons[r.trend]}
+            </div>
+          </div>
+          <Progress value={r.score} className="h-1.5" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function RiskAnalysisPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Risk Analysis</h1>
-          <p className="text-muted-foreground">Climate risk exposure assessment and monitoring</p>
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Risk Analysis</h1>
+          <p className="text-sm text-muted-foreground">
+            Climate risk exposure assessment and monitoring
+          </p>
         </div>
-        <Badge variant="secondary">Updated: Q1 2024</Badge>
+        <Badge variant="secondary">Q1 2024</Badge>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Overall Risk Score"
+          title="Overall risk"
           value="52/100"
           change="+3 pts"
           changeType="negative"
           description="vs last quarter"
-          icon={AlertTriangle}
         />
         <MetricCard
-          title="Physical Risk"
+          title="Physical"
           value="42/100"
           change="+2 pts"
           changeType="negative"
@@ -107,7 +120,7 @@ export default function RiskAnalysisPage() {
           icon={Thermometer}
         />
         <MetricCard
-          title="Transition Risk"
+          title="Transition"
           value="58/100"
           change="+4 pts"
           changeType="negative"
@@ -115,7 +128,7 @@ export default function RiskAnalysisPage() {
           icon={TrendingUp}
         />
         <MetricCard
-          title="Value at Risk"
+          title="Value at risk"
           value="$28.4M"
           change="+$2.1M"
           changeType="negative"
@@ -124,147 +137,102 @@ export default function RiskAnalysisPage() {
         />
       </div>
 
-      {/* Risk Distribution & Trend */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle>Risk Distribution</CardTitle>
-            <CardDescription>Physical vs. transition risk exposure</CardDescription>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Distribution</CardTitle>
+            <CardDescription>Physical vs. transition risk</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={riskDistribution}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
+                  innerRadius={52}
+                  outerRadius={78}
                   paddingAngle={2}
                   dataKey="value"
                 >
-                  {riskDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {riskDistribution.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i]} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
+                <Tooltip />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle>Risk Score Trend</CardTitle>
-            <CardDescription>Quarterly risk score evolution</CardDescription>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Risk trend</CardTitle>
+            <CardDescription>Quarterly score evolution</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={220}>
               <LineChart data={riskTrend}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="quarter" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} domain={[0, 100]} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
+                <XAxis dataKey="quarter" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} />
+                <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="physical" name="Physical" stroke={COLORS[0]} strokeWidth={2} dot={{ fill: COLORS[0] }} />
-                <Line type="monotone" dataKey="transition" name="Transition" stroke={COLORS[1]} strokeWidth={2} dot={{ fill: COLORS[1] }} />
+                <Line type="monotone" dataKey="physical" name="Physical" stroke={COLORS[0]} strokeWidth={1.5} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="transition" name="Transition" stroke={COLORS[1]} strokeWidth={1.5} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Detailed Risk Breakdowns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Thermometer className="h-5 w-5 mr-2" />
-              Physical Risks
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Thermometer className="h-4 w-4" />
+              Physical risks
             </CardTitle>
             <CardDescription>Direct climate hazard exposure</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {physicalRiskData.map((risk) => (
-              <div key={risk.risk} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{risk.risk}</span>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-muted-foreground">{risk.score}/100</span>
-                    {risk.trend === "increasing" && <TrendingUp className="h-3 w-3 text-red-500" />}
-                    {risk.trend === "decreasing" && <TrendingDown className="h-3 w-3 text-green-500" />}
-                  </div>
-                </div>
-                <Progress value={risk.score} className="h-2" />
-              </div>
-            ))}
+          <CardContent>
+            <RiskList data={physicalRiskData} />
           </CardContent>
         </Card>
 
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Factory className="h-5 w-5 mr-2" />
-              Transition Risks
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Transition risks
             </CardTitle>
             <CardDescription>Low-carbon transition exposure</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {transitionRiskData.map((risk) => (
-              <div key={risk.risk} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{risk.risk}</span>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-muted-foreground">{risk.score}/100</span>
-                    {risk.trend === "increasing" && <TrendingUp className="h-3 w-3 text-red-500" />}
-                    {risk.trend === "decreasing" && <TrendingDown className="h-3 w-3 text-green-500" />}
-                  </div>
-                </div>
-                <Progress value={risk.score} className="h-2" />
-              </div>
-            ))}
+          <CardContent>
+            <RiskList data={transitionRiskData} />
           </CardContent>
         </Card>
       </div>
 
-      {/* Asset-Level Risk */}
-      <Card className="border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <MapPin className="h-5 w-5 mr-2" />
-            Asset-Level Risk Exposure
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Asset-level risk
           </CardTitle>
-          <CardDescription>Risk scores by location and asset value ($M)</CardDescription>
+          <CardDescription>Risk scores by location</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={260}>
             <BarChart data={assetRiskData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis type="number" domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))" }} />
-              <YAxis dataKey="location" type="category" tick={{ fill: "hsl(var(--muted-foreground))" }} width={120} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
+              <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
+              <YAxis dataKey="location" type="category" tick={{ fontSize: 11 }} width={90} />
+              <Tooltip />
               <Legend />
-              <Bar dataKey="physicalRisk" name="Physical Risk" fill={COLORS[0]} />
-              <Bar dataKey="transitionRisk" name="Transition Risk" fill={COLORS[1]} />
+              <Bar dataKey="physical" name="Physical" fill={COLORS[0]} />
+              <Bar dataKey="transition" name="Transition" fill={COLORS[1]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
