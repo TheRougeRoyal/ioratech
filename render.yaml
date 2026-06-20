@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: iora-ml
-    runtime: python
-    pythonVersion: "3.11"
-    buildCommand: cd ml && pip install -r requirements.txt
-    startCommand: cd ml && uvicorn main:app --host 0.0.0.0 --port $PORT
