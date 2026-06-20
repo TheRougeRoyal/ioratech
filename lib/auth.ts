@@ -9,10 +9,12 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged,
+  getAuth,
   type User as FirebaseUser,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import app from "@/lib/firebase";
 
+const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
 export async function signUp(email: string, password: string, displayName?: string) {
