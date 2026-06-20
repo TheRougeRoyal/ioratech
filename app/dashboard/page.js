@@ -135,7 +135,9 @@ export default function DashboardPage() {
     );
   }
 
-  const hasData = data && (data.emissions.length > 0 || data.risks.length > 0 || data.compliance.length > 0);
+  if (!data) return <DashboardSkeleton />;
+
+  const hasData = data.emissions.length > 0 || data.risks.length > 0 || data.compliance.length > 0;
   if (!hasData) return <EmptyState />;
 
   const name = data?.profile?.name || user?.displayName || user?.email?.split("@")[0] || "there";

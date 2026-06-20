@@ -10,7 +10,9 @@ import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
-  const { user, loading } = useAuth();
+  const authCtx = useAuth();
+  const user = authCtx?.user ?? null;
+  const loading = authCtx?.loading ?? true;
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {

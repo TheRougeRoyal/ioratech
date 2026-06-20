@@ -33,8 +33,15 @@ export interface FirebaseJwtPayload extends JWTPayload {
 
 function decodeJwtHeader(token: string): { kid?: string } {
   try {
-    const payload = token.split(".")[0];
-    return JSON.parse(Buffer.from(payload, "base64url").toString());
+    const headerSegment = token.split(".")[0];
+    const padded = headerSegment.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = decodeURIComponent(
+      atob(padded)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(decoded);
   } catch {
     return {};
   }
@@ -49,13 +56,19 @@ export async function verifyFirebaseToken(token: string): Promise<FirebaseJwtPay
     const key = await getSigningKey(kid);
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
+    if (!projectId) {
+      console.error("NEXT_PUBLIC_FIREBASE_PROJECT_ID is not set");
+      return null;
+    }
+
     const { payload } = await jwtVerify(token, key, {
       issuer: `https://securetoken.google.com/${projectId}`,
       audience: projectId,
     });
 
     return payload as FirebaseJwtPayload;
-  } catch {
+  } catch (err) {
+    console.error("Token verification failed:", err);
     return null;
   }
 }

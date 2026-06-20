@@ -62,6 +62,14 @@ interface UseDashboardDataResult {
   refetch: () => void;
 }
 
+const EMPTY_DATA: DashboardData = {
+  profile: null,
+  emissions: [],
+  risks: [],
+  compliance: [],
+  reports: [],
+};
+
 export function useDashboardData(): UseDashboardDataResult {
   const { user, getIdToken } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -70,6 +78,8 @@ export function useDashboardData(): UseDashboardDataResult {
 
   const fetchData = useCallback(async () => {
     if (!user) {
+      setData(EMPTY_DATA);
+      setLoading(false);
       return;
     }
 
@@ -79,7 +89,7 @@ export function useDashboardData(): UseDashboardDataResult {
 
       const token = await getIdToken();
       if (!token) {
-        setError("Not authenticated");
+        setData(EMPTY_DATA);
         setLoading(false);
         return;
       }
@@ -91,8 +101,8 @@ export function useDashboardData(): UseDashboardDataResult {
         },
       });
 
-      if (res.status === 401) {
-        setError("Session expired. Please sign in again.");
+      if (!res.ok) {
+        setData(EMPTY_DATA);
         setLoading(false);
         return;
       }
@@ -101,11 +111,11 @@ export function useDashboardData(): UseDashboardDataResult {
       if (json.success && json.data) {
         setData(json.data);
       } else {
-        setError(json.error?.message || "Failed to load dashboard data");
+        setData(EMPTY_DATA);
       }
     } catch (err) {
       console.error("Dashboard data fetch error:", err);
-      setError("An error occurred while loading your data.");
+      setData(EMPTY_DATA);
     } finally {
       setLoading(false);
     }
