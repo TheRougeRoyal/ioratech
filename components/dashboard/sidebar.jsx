@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -56,13 +55,7 @@ function SidebarContent({ pathname, onNavigate }) {
     <div className="flex flex-col h-full">
       <div className="flex h-12 items-center px-4 border-b">
         <Link href="/" className="flex items-center px-4" onClick={onNavigate}>
-          <Image
-            src="/logo.png"
-            alt="Ioratech Logo"
-            width={120}
-            height={28}
-            className="h-7 w-auto"
-          />
+          <span className="text-base font-bold tracking-tight">IORATECH</span>
         </Link>
       </div>
 

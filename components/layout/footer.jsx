@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
@@ -36,13 +35,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
           <div className="col-span-2">
             <Link href="/" className="flex items-center">
-              <Image
-                src="/logo.png"
-                alt="Ioratech Logo"
-                width={160}
-                height={40}
-                className="h-10 w-auto"
-              />
+              <span className="text-xl font-bold tracking-tight">IORATECH</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs">
               Operational climate intelligence for strategic decision-making. Built for enterprises.
@@ -115,12 +108,22 @@ export function Footer() {
           </div>
         </div>
         <Separator className="my-8" />
-        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Iora Technologies, Inc. All rights reserved.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Climate intelligence infrastructure for the enterprise.
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">
+                © {new Date().getFullYear()} Iora Technologies, Inc. All rights reserved.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Ioratech is a subsidiary of Lysandra Group of Companies.
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Climate intelligence infrastructure for the enterprise.
+            </p>
+          </div>
+          <p className="text-[11px] leading-relaxed text-muted-foreground/70 max-w-4xl">
+            The information provided on this platform is for general informational purposes only and does not constitute professional, financial, legal, or environmental advice. All data, analytics, forecasts, and reports generated through Ioratech are based on models, algorithms, and third-party data sources which may contain inaccuracies or omissions. Iora Technologies, Inc. makes no warranties, express or implied, regarding the accuracy, completeness, reliability, or suitability of any information, data, or outputs provided through this platform. Users are solely responsible for verifying any outputs and relying on them at their own risk. Iora Technologies, Inc., its parent company Lysandra Group of Companies, and their respective officers, directors, employees, agents, and affiliates shall not be held liable for any direct, indirect, incidental, consequential, special, or punitive damages, losses, or expenses arising from or in connection with the use of, or reliance on, any content, data, or services provided through this platform. Past performance of any model or forecast is not indicative of future results. Carbon metrics, risk assessments, and compliance indicators are provided as estimates and should be independently validated before use in regulatory filings, investment decisions, or corporate reporting. This platform may contain links to third-party websites or services; Iora Technologies, Inc. assumes no responsibility for the content, privacy practices, or policies of any third parties. By accessing or using this platform, you acknowledge and agree to these terms and disclaimers.
           </p>
         </div>
       </div>
