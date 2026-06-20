@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
-import { motion } from "framer-motion";
 import Link from "next/link";
 
 const plans = [
@@ -65,77 +64,67 @@ const plans = [
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="py-20 md:py-28">
-      <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12 md:mb-14"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Start with the right level of support</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+    <section id="pricing" className="py-20 md:py-28 relative overflow-hidden bg-background border-b border-border/40">
+      <div className="container px-4 md:px-6 mx-auto">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">Start with the right level of support</h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
             Most teams begin with a short discovery phase, then choose a plan based on reporting scope,
             data complexity, and team size.
           </p>
-        </motion.div>
+        </div>
 
+        {/* Pricing Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {plans.map((plan, index) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="relative"
-            >
+          {plans.map((plan) => (
+            <div key={plan.name} className="relative h-full">
               <Card
-                className={`h-full flex flex-col ${
+                className={`h-full flex flex-col justify-between rounded-xl border ${
                   plan.popular
-                    ? "border-primary"
-                    : "border-border/50"
+                    ? "border-foreground shadow-sm bg-card"
+                    : "border-border/50 bg-card/60"
                 }`}
               >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge>Most Popular</Badge>
-                  </div>
-                )}
-                <CardHeader className="pt-8">
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <CardDescription className="min-h-[40px]">{plan.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    {plan.period && (
-                      <span className="text-muted-foreground ml-2 text-sm">{plan.period}</span>
-                    )}
-                  </div>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start">
-                        <Check className="h-4 w-4 text-emerald-500 mt-0.5 mr-3 flex-shrink-0" />
-                        <span className="text-sm text-muted-foreground">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter className="pt-4">
+                <div>
+                  <CardHeader className="pt-8">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl tracking-tight">{plan.name}</CardTitle>
+                      {plan.popular && (
+                        <Badge variant="outline" className="font-mono text-[9px] uppercase tracking-wider bg-foreground text-background">Most Popular</Badge>
+                      )}
+                    </div>
+                    <CardDescription className="min-h-[40px] text-sm mt-1">{plan.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-6">
+                      <span className="text-3xl font-bold tracking-tight">{plan.price}</span>
+                      {plan.period && (
+                        <span className="text-muted-foreground ml-2 text-xs font-mono">{plan.period}</span>
+                      )}
+                    </div>
+                    <ul className="space-y-3">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-start text-xs text-muted-foreground">
+                          <Check className="h-3.5 w-3.5 text-foreground mt-0.5 mr-3 shrink-0" />
+                          <span className="leading-normal">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </div>
+                <CardFooter className="pt-6 pb-8">
                   <Link href="/request-access" className="w-full">
                     <Button
-                      className="w-full"
+                      className="w-full rounded-md h-10 text-xs font-medium"
                       variant={plan.variant}
-                      size="lg"
                     >
                       {plan.cta}
                     </Button>
                   </Link>
                 </CardFooter>
               </Card>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
