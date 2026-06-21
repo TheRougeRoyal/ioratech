@@ -1,15 +1,17 @@
 # Iora Technology Platform
 
-A Next.js platform for ESG (Environmental, Social, Governance) metrics, compliance tracking, and risk analysis.
+ESG metrics, compliance tracking, risk analysis, and scenario simulation platform with an integrated ML service.
 
 ## Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
 - **Database**: MongoDB
-- **Auth**: Custom token + API key authentication
+- **Auth**: Firebase Authentication
 - **UI**: Tailwind CSS + Radix UI + shadcn/ui
 - **Charts**: Recharts
-- **Deployment**: Vercel
+- **Animations**: Framer Motion
+- **ML Service**: FastAPI (Python 3.11) on Render
+- **Deployment**: Vercel (frontend) + Render (ML service)
 
 ## Getting Started
 
@@ -17,21 +19,30 @@ A Next.js platform for ESG (Environmental, Social, Governance) metrics, complian
 
 - Node.js 18+
 - MongoDB instance (local or Atlas)
+- Firebase project
 
 ### Environment Variables
 
-Create a `.env` file based on `.env.example`, or set these in your deployment environment:
+Create a `.env` file based on `.env.example`:
 
 ```env
-# MongoDB
-MONGO_URL=mongodb+srv://<user>:<password>@<host>/?appName=Cluster0
-DB_NAME=ioratech
+# Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
+
+# API
+NEXT_PUBLIC_API_URL=
 
 # JWT
-JWT_SECRET=<your-secret>
+JWT_SECRET=
 
 # API Keys
-API_KEY_HASH_SECRET=<your-secret>
+API_KEY_HASH_SECRET=
 API_KEY_PREFIX=sk_
 
 # Rate Limiting
@@ -39,7 +50,10 @@ RATE_LIMIT_AUTH_PER_MINUTE=5
 RATE_LIMIT_API_PER_MINUTE=60
 
 # CORS
-CORS_ORIGINS=*
+CORS_ORIGINS=
+
+# ML Service (optional)
+NEXT_PUBLIC_ML_API=https://iora-ml.onrender.com
 ```
 
 ### Local Development
@@ -57,37 +71,58 @@ Visit [http://localhost:3000](http://localhost:3000).
 npm run build
 ```
 
-## Deployment to Vercel
+## Deployment
 
-1. Fork or push this repo to GitHub
+### Frontend (Vercel)
+
+1. Push to GitHub
 2. Import into Vercel
-3. Add environment variables in Vercel project settings (see `.env.example` for full list)
+3. Add environment variables in project settings
 4. Deploy
 
-The `next.config.js` is pre-configured for Vercel serverless with `output: 'standalone'`.
+### ML Service (Render)
 
-## API Endpoints
+| Field    | Value                    |
+|----------|--------------------------|
+| Runtime  | Python 3.11              |
+| Build    | `cd ml && pip install -r requirements.txt` |
+| Start    | `cd ml && uvicorn main:app --host 0.0.0.0 --port $PORT` |
 
-### Authentication
-- `POST /api/auth/signup` — Create account
-- `POST /api/auth/login` — Login
-- `POST /api/auth/logout` — Logout
-- `POST /api/auth/reset-password` — Request/reset password
+After deploy, set `NEXT_PUBLIC_ML_API` in Vercel and redeploy.
 
-### Profile
-- `GET/PUT /api/profile` — Get/update user profile
-
-### API Keys
-- `POST /api/api-keys/create` — Create API key
-- `GET /api/api-keys/list` — List user's API keys
-- `DELETE /api/api-keys/revoke` — Revoke API key
-- `POST /api/api-keys/validate` — Validate API key
+Verify: `curl https://iora-ml.onrender.com/ml/health`
 
 ## Features
 
-- User authentication with session tokens and API keys
-- Dashboard with carbon metrics, compliance, and risk analysis
-- Scenario simulator
-- Role-based access control (owner, admin, member, viewer)
-- Audit logging
-- Rate limiting
+- **Landing page**: Hero, capabilities, how it works, industries, pricing, contact
+- **Dashboard**: Carbon metrics, compliance, risk analysis, scenario simulator, reports
+- **Authentication**: Firebase auth with signup, login, password reset
+- **API keys**: Create, list, validate, revoke
+- **Role-based access**: Owner, admin, member, viewer
+- **Rate limiting & audit logging**
+- **Footer pages**: About, contact, blog, docs, API docs, status, security, DPA, privacy, terms, careers
+
+## ML API Endpoints
+
+| Method | Endpoint               | Description                          |
+|--------|------------------------|--------------------------------------|
+| GET    | `/ml/health`           | Health check                         |
+| POST   | `/ml/forecast`         | Time-series forecasting              |
+| POST   | `/ml/risk-score`       | ESG risk scoring                     |
+| POST   | `/ml/anomaly-detect`   | Anomaly detection                    |
+| POST   | `/ml/compliance-analyze` | Compliance analysis                |
+
+## API Routes
+
+| Method | Endpoint                  | Description           |
+|--------|---------------------------|-----------------------|
+| POST   | `/api/auth/signup`        | Create account        |
+| POST   | `/api/auth/login`         | Login                 |
+| POST   | `/api/auth/logout`        | Logout                |
+| POST   | `/api/auth/reset-password`| Reset password        |
+| GET/PUT| `/api/profile`            | Get/update profile    |
+| POST   | `/api/api-keys/create`    | Create API key        |
+| GET    | `/api/api-keys/list`      | List API keys         |
+| DELETE | `/api/api-keys/revoke`    | Revoke API key        |
+| POST   | `/api/api-keys/validate`  | Validate API key      |
+| GET    | `/api/dashboard/data`     | Dashboard data        |
