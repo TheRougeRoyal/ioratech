@@ -47,7 +47,24 @@ const tooltipStyle = {
 export default function CarbonMetricsPage() {
   const { user, getIdToken } = useAuth();
   const { toast } = useToast();
-  const [emissions, setEmissions] = useState([]);
+  const MOCK_EMISSIONS = [
+    { id: "m1", scope: 1, category: "Stationary Combustion", value: 4200, unit: "tCO2e", period: "2024-01" },
+    { id: "m2", scope: 1, category: "Mobile Combustion", value: 1800, unit: "tCO2e", period: "2024-01" },
+    { id: "m3", scope: 1, category: "Fugitive Emissions", value: 650, unit: "tCO2e", period: "2024-02" },
+    { id: "m4", scope: 1, category: "Process Emissions", value: 920, unit: "tCO2e", period: "2024-02" },
+    { id: "m5", scope: 2, category: "Purchased Electricity", value: 3400, unit: "tCO2e", period: "2024-01" },
+    { id: "m6", scope: 2, category: "Purchased Heat", value: 1100, unit: "tCO2e", period: "2024-01" },
+    { id: "m7", scope: 2, category: "Purchased Electricity", value: 3100, unit: "tCO2e", period: "2024-02" },
+    { id: "m8", scope: 2, category: "Purchased Cooling", value: 450, unit: "tCO2e", period: "2024-02" },
+    { id: "m9", scope: 3, category: "Purchased Goods", value: 5200, unit: "tCO2e", period: "2024-01" },
+    { id: "m10", scope: 3, category: "Transportation", value: 2800, unit: "tCO2e", period: "2024-01" },
+    { id: "m11", scope: 3, category: "Business Travel", value: 950, unit: "tCO2e", period: "2024-02" },
+    { id: "m12", scope: 3, category: "Employee Commute", value: 1400, unit: "tCO2e", period: "2024-02" },
+    { id: "m13", scope: 3, category: "Waste Operations", value: 680, unit: "tCO2e", period: "2024-01" },
+    { id: "m14", scope: 3, category: "Capital Goods", value: 3100, unit: "tCO2e", period: "2024-02" },
+  ];
+
+  const [emissions, setEmissions] = useState(MOCK_EMISSIONS);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -72,7 +89,7 @@ export default function CarbonMetricsPage() {
 
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.data) {
+        if (json.success && json.data && json.data.length > 0) {
           setEmissions(json.data);
         }
       }

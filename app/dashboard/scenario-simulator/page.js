@@ -36,7 +36,13 @@ export default function ScenarioSimulatorPage() {
   const [regulationIntensity, setRegulationIntensity] = useState([60]);
   const [transitionSpeed, setTransitionSpeed] = useState("moderate");
   const [physicalRiskScenario, setPhysicalRiskScenario] = useState("rcp45");
-  const [savedScenarios, setSavedScenarios] = useState([]);
+  const MOCK_SCENARIOS = [
+    { id: "s1", category: "Base Case 2024", risk_type: "scenario", score: 55, description: JSON.stringify({ carbonPrice: 85, regulationIntensity: 60, transitionSpeed: "moderate", physicalRiskScenario: "rcp45" }) },
+    { id: "s2", category: "High Carbon Price", risk_type: "scenario", score: 72, description: JSON.stringify({ carbonPrice: 150, regulationIntensity: 80, transitionSpeed: "fast", physicalRiskScenario: "rcp45" }) },
+    { id: "s3", category: "Delayed Transition", risk_type: "scenario", score: 68, description: JSON.stringify({ carbonPrice: 45, regulationIntensity: 30, transitionSpeed: "slow", physicalRiskScenario: "rcp85" }) },
+  ];
+
+  const [savedScenarios, setSavedScenarios] = useState(MOCK_SCENARIOS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -57,7 +63,9 @@ export default function ScenarioSimulatorPage() {
         const json = await res.json();
         if (json.success && json.data) {
           const scenarios = json.data.filter((r) => r.risk_type === "scenario");
-          setSavedScenarios(scenarios);
+          if (scenarios.length > 0) {
+            setSavedScenarios(scenarios);
+          }
         }
       }
     } catch (err) {

@@ -64,7 +64,18 @@ function RiskList({ data }) {
 export default function RiskAnalysisPage() {
   const { user, getIdToken } = useAuth();
   const { toast } = useToast();
-  const [risks, setRisks] = useState([]);
+  const MOCK_RISKS = [
+    { id: "r1", category: "Heat Stress", risk_type: "Physical", score: 72, trend: "increasing", description: "Extreme heat events increasing" },
+    { id: "r2", category: "Flooding", risk_type: "Physical", score: 65, trend: "stable", description: "Coastal and riverine flood risk" },
+    { id: "r3", category: "Water Scarcity", risk_type: "Physical", score: 58, trend: "increasing", description: "Declining water availability" },
+    { id: "r4", category: "Wildfire", risk_type: "Physical", score: 41, trend: "stable", description: "Seasonal wildfire exposure" },
+    { id: "r5", category: "Carbon Pricing", risk_type: "Transition", score: 83, trend: "increasing", description: "Rising carbon tax trajectory" },
+    { id: "r6", category: "Policy & Legal", risk_type: "Transition", score: 67, trend: "increasing", description: "Evolving disclosure mandates" },
+    { id: "r7", category: "Technology", risk_type: "Transition", score: 54, trend: "stable", description: "Clean tech disruption" },
+    { id: "r8", category: "Market Shift", risk_type: "Transition", score: 48, trend: "decreasing", description: "Demand shift to low-carbon products" },
+  ];
+
+  const [risks, setRisks] = useState(MOCK_RISKS);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -89,7 +100,7 @@ export default function RiskAnalysisPage() {
 
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.data) {
+        if (json.success && json.data && json.data.length > 0) {
           setRisks(json.data);
         }
       }

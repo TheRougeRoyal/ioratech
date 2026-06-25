@@ -49,14 +49,14 @@ function SettingsContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState({
-    name: "",
+    name: "Aakash Raj",
     email: "",
-    phone: "",
-    company: "",
-    industry: "",
-    job_title: "",
-    bio: "",
-    timezone: "UTC",
+    phone: "+1 (555) 123-4567",
+    company: "Iora Technologies",
+    industry: "Climate Tech",
+    job_title: "Sustainability Engineer",
+    bio: "Leading climate intelligence initiatives and emissions reduction strategies.",
+    timezone: "America/New_York",
     notification_preferences: {
       email_reports: true,
       risk_alerts: true,
@@ -88,22 +88,22 @@ function SettingsContent() {
       const json = await res.json();
       if (json.success && json.data) {
         const d = json.data;
-        setProfile({
-          name: d.name || "",
-          email: d.email || user.email || "",
-          phone: d.phone || "",
-          company: d.company || "",
-          industry: d.industry || "",
-          job_title: d.job_title || "",
-          bio: d.bio || "",
-          timezone: d.timezone || "UTC",
+        setProfile((prev) => ({
+          name: d.name || prev.name,
+          email: d.email || user.email || prev.email,
+          phone: d.phone || prev.phone,
+          company: d.company || prev.company,
+          industry: d.industry || prev.industry,
+          job_title: d.job_title || prev.job_title,
+          bio: d.bio || prev.bio,
+          timezone: d.timezone || prev.timezone,
           notification_preferences: {
-            email_reports: d.notification_preferences?.email_reports ?? true,
-            risk_alerts: d.notification_preferences?.risk_alerts ?? true,
-            compliance_updates: d.notification_preferences?.compliance_updates ?? true,
-            product_updates: d.notification_preferences?.product_updates ?? true,
+            email_reports: d.notification_preferences?.email_reports ?? prev.notification_preferences.email_reports,
+            risk_alerts: d.notification_preferences?.risk_alerts ?? prev.notification_preferences.risk_alerts,
+            compliance_updates: d.notification_preferences?.compliance_updates ?? prev.notification_preferences.compliance_updates,
+            product_updates: d.notification_preferences?.product_updates ?? prev.notification_preferences.product_updates,
           },
-        });
+        }));
       }
     } catch (err) {
       console.error("Failed to load profile:", err);

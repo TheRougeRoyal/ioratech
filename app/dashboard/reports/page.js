@@ -38,8 +38,16 @@ const statusStyles = {
 export default function ReportsPage() {
   const { user, getIdToken } = useAuth();
   const { toast } = useToast();
+  const MOCK_REPORTS = [
+    { id: "rp1", name: "Annual ESG Report 2024", type: "ESG Report", status: "published", date: "2024-03-15", frameworks: ["TCFD", "GRI", "SASB"] },
+    { id: "rp2", name: "Q1 2024 Climate Risk Assessment", type: "Risk Assessment", status: "published", date: "2024-04-01", frameworks: ["TCFD", "CDP"] },
+    { id: "rp3", name: "CSRD Readiness Report", type: "Compliance Report", status: "in-review", date: "2024-05-10", frameworks: ["CSRD", "ESRS"] },
+    { id: "rp4", name: "Scope 3 Deep Dive", type: "Quarterly Report", status: "draft", date: "2024-06-01", frameworks: ["GHG Protocol"] },
+    { id: "rp5", name: "Sustainability Report 2025", type: "Annual Report", status: "draft", date: null, frameworks: ["TCFD", "GRI", "SASB", "CDP"] },
+  ];
+
   const [loading, setLoading] = useState(true);
-  const [reportItems, setReportItems] = useState([]);
+  const [reportItems, setReportItems] = useState(MOCK_REPORTS);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newReport, setNewReport] = useState({
@@ -62,7 +70,7 @@ export default function ReportsPage() {
 
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.data) {
+        if (json.success && json.data && json.data.length > 0) {
           setReportItems(json.data);
         }
       }

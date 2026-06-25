@@ -47,7 +47,42 @@ function StatusBadge({ status }) {
 export default function CompliancePage() {
   const { user, getIdToken } = useAuth();
   const { toast } = useToast();
-  const [frameworks, setFrameworks] = useState([]);
+  const MOCK_FRAMEWORKS = [
+    { id: "f1", framework: "TCFD", status: "aligned", score: 92, categories: [
+      { name: "Governance", status: "aligned" },
+      { name: "Strategy", status: "aligned" },
+      { name: "Risk Management", status: "partial" },
+      { name: "Metrics & Targets", status: "aligned" },
+    ]},
+    { id: "f2", framework: "CSRD", status: "partial", score: 74, categories: [
+      { name: "General Requirements", status: "aligned" },
+      { name: "Environmental", status: "partial" },
+      { name: "Social", status: "aligned" },
+      { name: "Governance", status: "aligned" },
+    ]},
+    { id: "f3", framework: "SEC Climate", status: "at-risk", score: 58, categories: [
+      { name: "Climate Risk Disclosure", status: "partial" },
+      { name: "GHG Emissions", status: "at-risk" },
+      { name: "Financial Impact", status: "partial" },
+    ]},
+    { id: "f4", framework: "GHG Protocol", status: "aligned", score: 95, categories: [
+      { name: "Scope 1", status: "aligned" },
+      { name: "Scope 2", status: "aligned" },
+      { name: "Scope 3", status: "aligned" },
+    ]},
+    { id: "f5", framework: "GRI", status: "partial", score: 68, categories: [
+      { name: "Emissions", status: "aligned" },
+      { name: "Energy", status: "partial" },
+      { name: "Water", status: "at-risk" },
+    ]},
+    { id: "f6", framework: "SASB", status: "aligned", score: 88, categories: [
+      { name: "Environment", status: "aligned" },
+      { name: "Social Capital", status: "aligned" },
+      { name: "Business Model", status: "partial" },
+    ]},
+  ];
+
+  const [frameworks, setFrameworks] = useState(MOCK_FRAMEWORKS);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -70,7 +105,7 @@ export default function CompliancePage() {
 
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.data) {
+        if (json.success && json.data && json.data.length > 0) {
           setFrameworks(json.data);
         }
       }
