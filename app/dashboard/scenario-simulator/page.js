@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   Area,
   AreaChart,
@@ -20,15 +23,53 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCcw, Save, Loader2, History } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/hooks/use-toast";
 
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"];
 
 export default function ScenarioSimulatorPage() {
+  const { user, getIdToken } = useAuth();
+  const { toast } = useToast();
   const [carbonPrice, setCarbonPrice] = useState([85]);
   const [regulationIntensity, setRegulationIntensity] = useState([60]);
   const [transitionSpeed, setTransitionSpeed] = useState("moderate");
   const [physicalRiskScenario, setPhysicalRiskScenario] = useState("rcp45");
+  const [savedScenarios, setSavedScenarios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [scenarioName, setScenarioName] = useState("");
+
+  const fetchScenarios = useCallback(async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const token = await getIdToken();
+      if (!token) return;
+
+      const res = await fetch("/api/dashboard/risks", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const scenarios = json.data.filter((r) => r.risk_type === "scenario");
+          setSavedScenarios(scenarios);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch scenarios:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, getIdToken]);
+
+  useEffect(() => {
+    fetchScenarios();
+  }, [fetchScenarios]);
 
   const riskScore = useMemo(() => {
     const base = 50;
@@ -82,6 +123,70 @@ export default function ScenarioSimulatorPage() {
     setPhysicalRiskScenario("rcp45");
   };
 
+  const loadScenario = (scenario) => {
+    if (scenario.description) {
+      try {
+        const params = JSON.parse(scenario.description);
+        setCarbonPrice([params.carbonPrice || 85]);
+        setRegulationIntensity([params.regulationIntensity || 60]);
+        setTransitionSpeed(params.transitionSpeed || "moderate");
+        setPhysicalRiskScenario(params.physicalRiskScenario || "rcp45");
+        toast({ title: "Loaded", description: `Scenario "${scenario.category}" loaded` });
+      } catch {
+        toast({ title: "Error", description: "Failed to load scenario parameters", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleSaveScenario = async () => {
+    if (!scenarioName.trim()) {
+      toast({ title: "Error", description: "Please enter a scenario name", variant: "destructive" });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const token = await getIdToken();
+      if (!token) return;
+
+      const params = {
+        carbonPrice: carbonPrice[0],
+        regulationIntensity: regulationIntensity[0],
+        transitionSpeed,
+        physicalRiskScenario,
+      };
+
+      const res = await fetch("/api/dashboard/risks", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          category: scenarioName,
+          risk_type: "scenario",
+          score: riskScore,
+          trend: "stable",
+          description: JSON.stringify(params),
+        }),
+      });
+
+      if (res.ok) {
+        toast({ title: "Success", description: "Scenario saved successfully" });
+        setDialogOpen(false);
+        setScenarioName("");
+        fetchScenarios();
+      } else {
+        toast({ title: "Error", description: "Failed to save scenario", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Failed to save scenario:", err);
+      toast({ title: "Error", description: "Failed to save scenario", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -91,11 +196,77 @@ export default function ScenarioSimulatorPage() {
             Model financial impacts under different climate scenarios
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={reset}>
-          <RefreshCcw className="h-3.5 w-3.5 mr-1.5" />
-          Reset
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={reset}>
+            <RefreshCcw className="h-3.5 w-3.5 mr-1.5" />
+            Reset
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Save className="h-3.5 w-3.5 mr-1.5" />
+                Save
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Save Scenario</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label>Scenario Name</Label>
+                  <Input
+                    value={scenarioName}
+                    onChange={(e) => setScenarioName(e.target.value)}
+                    placeholder="e.g. High Carbon Price Scenario"
+                  />
+                </div>
+                <div className="p-3 rounded-lg bg-muted text-sm">
+                  <p className="font-medium">Current parameters:</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Carbon price: ${carbonPrice[0]}/tCO2e | Regulation: {regulationIntensity[0]}% | Transition: {transitionSpeed} | Physical: {physicalRiskScenario.toUpperCase()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Risk score: {riskScore}/100 | Financial impact: ${financialImpact}M
+                  </p>
+                </div>
+                <Button onClick={handleSaveScenario} disabled={saving} className="w-full">
+                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Save Scenario
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
+
+      {savedScenarios.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Saved Scenarios
+            </CardTitle>
+            <CardDescription>Click to load a previously saved scenario</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {savedScenarios.map((scenario) => (
+                <Button
+                  key={scenario.id}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadScenario(scenario)}
+                  className="text-xs"
+                >
+                  {scenario.category}
+                  <Badge variant="secondary" className="ml-2 text-[10px]">{scenario.score}/100</Badge>
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>

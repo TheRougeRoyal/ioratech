@@ -1,15 +1,15 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  TrendingUp,
-  TrendingDown,
-  MapPin,
-  Thermometer,
-  DollarSign,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Loader2, TrendingUp, TrendingDown, MapPin, Thermometer, DollarSign } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -26,45 +26,13 @@ import {
   YAxis,
 } from "recharts";
 import { MetricCard } from "@/components/dashboard/metric-card";
+import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/hooks/use-toast";
 
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
-const physicalRiskData = [
-  { risk: "Heat Stress", score: 72, trend: "increasing" },
-  { risk: "Flooding", score: 58, trend: "stable" },
-  { risk: "Water Scarcity", score: 45, trend: "increasing" },
-  { risk: "Sea Level Rise", score: 32, trend: "increasing" },
-  { risk: "Wildfire", score: 28, trend: "stable" },
-];
-
-const transitionRiskData = [
-  { risk: "Carbon Pricing", score: 68, trend: "increasing" },
-  { risk: "Policy & Legal", score: 62, trend: "increasing" },
-  { risk: "Technology", score: 55, trend: "stable" },
-  { risk: "Market Shift", score: 48, trend: "stable" },
-  { risk: "Reputation", score: 35, trend: "decreasing" },
-];
-
-const riskDistribution = [
-  { name: "Physical", value: 42 },
-  { name: "Transition", value: 58 },
-];
-
-const riskTrend = [
-  { quarter: "Q1 23", physical: 38, transition: 52 },
-  { quarter: "Q2 23", physical: 40, transition: 54 },
-  { quarter: "Q3 23", physical: 39, transition: 55 },
-  { quarter: "Q4 23", physical: 41, transition: 56 },
-  { quarter: "Q1 24", physical: 42, transition: 58 },
-];
-
-const assetRiskData = [
-  { location: "Houston", physical: 75, transition: 62 },
-  { location: "Rotterdam", physical: 68, transition: 55 },
-  { location: "Shanghai", physical: 52, transition: 70 },
-  { location: "Munich", physical: 35, transition: 48 },
-  { location: "Singapore", physical: 45, transition: 42 },
-];
+const riskTypes = ["Physical", "Transition"];
+const categories = ["Heat Stress", "Flooding", "Water Scarcity", "Sea Level Rise", "Wildfire", "Carbon Pricing", "Policy & Legal", "Technology", "Market Shift", "Reputation"];
 
 const trendIcons = {
   increasing: <TrendingUp className="h-3 w-3 text-red-500" />,
@@ -75,10 +43,10 @@ const trendIcons = {
 function RiskList({ data }) {
   return (
     <div className="space-y-3">
-      {data.map((r) => (
-        <div key={r.risk} className="space-y-1.5">
+      {data.length > 0 ? data.map((r) => (
+        <div key={r.id || r.risk} className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">{r.risk}</span>
+            <span className="text-sm font-medium">{r.category || r.risk}</span>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">{r.score}/100</span>
               {trendIcons[r.trend]}
@@ -86,12 +54,124 @@ function RiskList({ data }) {
           </div>
           <Progress value={r.score} className="h-1.5" />
         </div>
-      ))}
+      )) : (
+        <p className="text-sm text-muted-foreground text-center py-4">No risks recorded yet.</p>
+      )}
     </div>
   );
 }
 
 export default function RiskAnalysisPage() {
+  const { user, getIdToken } = useAuth();
+  const { toast } = useToast();
+  const [risks, setRisks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [newRisk, setNewRisk] = useState({
+    category: "",
+    risk_type: "Physical",
+    score: "",
+    trend: "stable",
+    description: "",
+  });
+
+  const fetchRisks = useCallback(async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const token = await getIdToken();
+      if (!token) return;
+
+      const res = await fetch("/api/dashboard/risks", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setRisks(json.data);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch risks:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, getIdToken]);
+
+  useEffect(() => {
+    fetchRisks();
+  }, [fetchRisks]);
+
+  const handleAddRisk = async () => {
+    if (!newRisk.category || !newRisk.score) {
+      toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const token = await getIdToken();
+      if (!token) return;
+
+      const res = await fetch("/api/dashboard/risks", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          category: newRisk.category,
+          risk_type: newRisk.risk_type,
+          score: parseInt(newRisk.score),
+          trend: newRisk.trend,
+          description: newRisk.description,
+        }),
+      });
+
+      if (res.ok) {
+        toast({ title: "Success", description: "Risk added successfully" });
+        setDialogOpen(false);
+        setNewRisk({ category: "", risk_type: "Physical", score: "", trend: "stable", description: "" });
+        fetchRisks();
+      } else {
+        toast({ title: "Error", description: "Failed to add risk", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Failed to add risk:", err);
+      toast({ title: "Error", description: "Failed to add risk", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const physicalRisks = risks.filter((r) => r.risk_type === "Physical");
+  const transitionRisks = risks.filter((r) => r.risk_type === "Transition");
+
+  const physicalScore = physicalRisks.length > 0
+    ? Math.round(physicalRisks.reduce((sum, r) => sum + r.score, 0) / physicalRisks.length)
+    : 0;
+  const transitionScore = transitionRisks.length > 0
+    ? Math.round(transitionRisks.reduce((sum, r) => sum + r.score, 0) / transitionRisks.length)
+    : 0;
+  const overallScore = risks.length > 0
+    ? Math.round(risks.reduce((sum, r) => sum + r.score, 0) / risks.length)
+    : 0;
+
+  const riskDistribution = [
+    { name: "Physical", value: physicalRisks.length || 0 },
+    { name: "Transition", value: transitionRisks.length || 0 },
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -101,39 +181,114 @@ export default function RiskAnalysisPage() {
             Climate risk exposure assessment and monitoring
           </p>
         </div>
-        <Badge variant="secondary">Q1 2024</Badge>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              Add Risk
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Risk</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label>Risk Type</Label>
+                <Select value={newRisk.risk_type} onValueChange={(v) => setNewRisk({ ...newRisk, risk_type: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {riskTypes.map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select value={newRisk.category} onValueChange={(v) => setNewRisk({ ...newRisk, category: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Score (0-100)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={newRisk.score}
+                    onChange={(e) => setNewRisk({ ...newRisk, score: e.target.value })}
+                    placeholder="50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Trend</Label>
+                  <Select value={newRisk.trend} onValueChange={(v) => setNewRisk({ ...newRisk, trend: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="increasing">Increasing</SelectItem>
+                      <SelectItem value="stable">Stable</SelectItem>
+                      <SelectItem value="decreasing">Decreasing</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Description (optional)</Label>
+                <Input
+                  value={newRisk.description}
+                  onChange={(e) => setNewRisk({ ...newRisk, description: e.target.value })}
+                  placeholder="Brief description"
+                />
+              </div>
+              <Button onClick={handleAddRisk} disabled={saving} className="w-full">
+                {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Add Risk
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Overall risk"
-          value="52/100"
-          change="+3 pts"
-          changeType="negative"
-          description="vs last quarter"
+          value={`${overallScore}/100`}
+          change={`${risks.length} risks`}
+          changeType="neutral"
+          description="tracked"
         />
         <MetricCard
           title="Physical"
-          value="42/100"
-          change="+2 pts"
-          changeType="negative"
-          description="vs last quarter"
+          value={`${physicalScore}/100`}
+          change={`${physicalRisks.length} risks`}
+          changeType="neutral"
           icon={Thermometer}
         />
         <MetricCard
           title="Transition"
-          value="58/100"
-          change="+4 pts"
-          changeType="negative"
-          description="vs last quarter"
+          value={`${transitionScore}/100`}
+          change={`${transitionRisks.length} risks`}
+          changeType="neutral"
           icon={TrendingUp}
         />
         <MetricCard
-          title="Value at risk"
-          value="$28.4M"
-          change="+$2.1M"
-          changeType="negative"
-          description="potential impact"
+          title="Total risks"
+          value={risks.length.toString()}
+          change="tracked"
+          changeType="neutral"
           icon={DollarSign}
         />
       </div>
@@ -142,7 +297,7 @@ export default function RiskAnalysisPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Distribution</CardTitle>
-            <CardDescription>Physical vs. transition risk</CardDescription>
+            <CardDescription>Physical vs. transition risk count</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -169,20 +324,18 @@ export default function RiskAnalysisPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Risk trend</CardTitle>
-            <CardDescription>Quarterly score evolution</CardDescription>
+            <CardTitle className="text-sm font-medium">Risk scores</CardTitle>
+            <CardDescription>Average score by risk type</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={riskTrend}>
+              <BarChart data={[{ name: "Physical", score: physicalScore }, { name: "Transition", score: transitionScore }]}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="quarter" tick={{ fontSize: 11 }} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} />
                 <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="physical" name="Physical" stroke={COLORS[0]} strokeWidth={1.5} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="transition" name="Transition" stroke={COLORS[1]} strokeWidth={1.5} dot={{ r: 3 }} />
-              </LineChart>
+                <Bar dataKey="score" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -198,7 +351,7 @@ export default function RiskAnalysisPage() {
             <CardDescription>Direct climate hazard exposure</CardDescription>
           </CardHeader>
           <CardContent>
-            <RiskList data={physicalRiskData} />
+            <RiskList data={physicalRisks} />
           </CardContent>
         </Card>
 
@@ -211,33 +364,10 @@ export default function RiskAnalysisPage() {
             <CardDescription>Low-carbon transition exposure</CardDescription>
           </CardHeader>
           <CardContent>
-            <RiskList data={transitionRiskData} />
+            <RiskList data={transitionRisks} />
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            Asset-level risk
-          </CardTitle>
-          <CardDescription>Risk scores by location</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={assetRiskData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
-              <YAxis dataKey="location" type="category" tick={{ fontSize: 11 }} width={90} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="physical" name="Physical" fill={COLORS[0]} />
-              <Bar dataKey="transition" name="Transition" fill={COLORS[1]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 }
