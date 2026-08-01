@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, rateLimitResponse, getClientIp, AUTH_RATE_LIMIT } from "@/lib/rate-limit";
 
 const PUBLIC_PREFIXES = [
   "/api/auth/",
@@ -6,11 +7,18 @@ const PUBLIC_PREFIXES = [
   "/favicon.ico",
 ];
 
+const AUTH_PREFIXES = ["/api/auth/"];
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   for (const prefix of PUBLIC_PREFIXES) {
     if (pathname.startsWith(prefix)) {
+      if (AUTH_PREFIXES.some((p) => pathname.startsWith(p))) {
+        const ip = getClientIp(request);
+        const { allowed, resetTime } = checkRateLimit(ip, AUTH_RATE_LIMIT);
+        if (!allowed) return rateLimitResponse(resetTime);
+      }
       return NextResponse.next();
     }
   }

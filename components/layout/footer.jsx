@@ -1,59 +1,67 @@
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import { Leaf, ShieldCheck } from "lucide-react";
 
 export function Footer() {
   const footerLinks = {
-    platform: [
-      { label: "Carbon Analytics", href: "/dashboard" },
-      { label: "Risk Forecasting", href: "/dashboard/risk-analysis" },
-      { label: "Scenario Modeling", href: "/dashboard/scenario-simulator" },
-      { label: "Compliance Monitor", href: "/dashboard/compliance" },
+    services: [
+      { label: "Water Quality & Hydrogeology", href: "/#services" },
+      { label: "Soil & Aquifer Remediation", href: "/#services" },
+      { label: "Air Quality Permitting", href: "/#services" },
+      { label: "Hazardous Waste Management", href: "/#services" },
+      { label: "Phase I & II Site Assessments", href: "/#services" },
+    ],
+    sectors: [
+      { label: "Industrial & Manufacturing", href: "/#sectors" },
+      { label: "Energy & Utilities", href: "/#sectors" },
+      { label: "Commercial Real Estate", href: "/#sectors" },
+      { label: "Civil Infrastructure", href: "/#sectors" },
+      { label: "Municipalities", href: "/#sectors" },
     ],
     company: [
-      { label: "About", href: "/about" },
-      { label: "Careers", href: "/careers" },
-      { label: "Contact", href: "/contact" },
-      { label: "Blog", href: "/blog" },
-    ],
-    resources: [
-      { label: "Documentation", href: "/docs" },
-      { label: "API Reference", href: "/api-docs" },
-      { label: "How It Works", href: "/#how-it-works" },
-      { label: "Status", href: "/status" },
+      { label: "About Ioratech", href: "/about" },
+      { label: "Engineering Careers", href: "/careers" },
+      { label: "Contact Field Offices", href: "/#contact" },
+      { label: "Technical Blog", href: "/blog" },
     ],
     legal: [
       { label: "Privacy Policy", href: "/privacy" },
       { label: "Terms of Service", href: "/terms" },
-      { label: "Security", href: "/security" },
-      { label: "DPA", href: "/dpa" },
+      { label: "Environmental Health & Safety", href: "/security" },
+      { label: "Data Protection Agreement", href: "/dpa" },
     ],
   };
 
   return (
-    <footer className="border-t border-border bg-muted/20">
-      <div className="container py-16">
+    <footer className="border-t border-border bg-muted/40 text-foreground">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
-          <div className="col-span-2">
-            <Link href="/" className="flex items-center">
+          <div className="col-span-2 space-y-4">
+            <Link href="/" className="flex items-center space-x-2.5">
+              <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                <Leaf className="h-4 w-4" />
+              </div>
               <span className="text-xl font-bold tracking-tight">IORATECH</span>
             </Link>
-            <p className="mt-4 text-sm text-muted-foreground max-w-xs">
-              Operational climate intelligence for strategic decision-making. Built for enterprises.
+            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+              Full-service environmental engineering, compliance auditing, and field remediation firm. Trusted by Fortune 500 industrial leaders and public agencies.
             </p>
-            <div className="flex items-center space-x-4 mt-6">
-              <span className="text-[10px] font-medium text-muted-foreground px-2 py-1 rounded bg-muted">SOC 2</span>
-              <span className="text-[10px] font-medium text-muted-foreground px-2 py-1 rounded bg-muted">GDPR</span>
-              <span className="text-[10px] font-medium text-muted-foreground px-2 py-1 rounded bg-muted">ISO 27001</span>
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="text-[10px] font-semibold text-muted-foreground px-2 py-1 rounded bg-muted border border-border">ISO 14001</span>
+              <span className="text-[10px] font-semibold text-muted-foreground px-2 py-1 rounded bg-muted border border-border">ISO 45001</span>
+              <span className="text-[10px] font-semibold text-muted-foreground px-2 py-1 rounded bg-muted border border-border">NELAP LAB</span>
+              <span className="text-[10px] font-semibold text-muted-foreground px-2 py-1 rounded bg-muted border border-border">ASTM E1527-21</span>
             </div>
           </div>
+
           <div>
-            <h4 className="font-semibold text-sm mb-4">Platform</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider mb-4 text-foreground">Core Services</h4>
             <ul className="space-y-2.5">
-              {footerLinks.platform.map((link) => (
+              {footerLinks.services.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -61,14 +69,31 @@ export function Footer() {
               ))}
             </ul>
           </div>
+
           <div>
-            <h4 className="font-semibold text-sm mb-4">Company</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider mb-4 text-foreground">Sectors</h4>
+            <ul className="space-y-2.5">
+              {footerLinks.sectors.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-xs uppercase tracking-wider mb-4 text-foreground">Company</h4>
             <ul className="space-y-2.5">
               {footerLinks.company.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -76,29 +101,15 @@ export function Footer() {
               ))}
             </ul>
           </div>
+
           <div>
-            <h4 className="font-semibold text-sm mb-4">Resources</h4>
-            <ul className="space-y-2.5">
-              {footerLinks.resources.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-sm mb-4">Legal</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider mb-4 text-foreground">Governance & Legal</h4>
             <ul className="space-y-2.5">
               {footerLinks.legal.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -107,23 +118,26 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        <Separator className="my-8" />
+
+        <Separator className="my-8 bg-border" />
+
         <div className="space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">
-                © {new Date().getFullYear()} Iora Technologies, Inc. All rights reserved.
+                © {new Date().getFullYear()} Iora Environmental Technologies, Inc. All rights reserved.
               </p>
               <p className="text-xs text-muted-foreground">
                 Ioratech is a subsidiary of Lysandra Group of Companies.
               </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Climate intelligence infrastructure for the enterprise.
+            <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              Licensed Engineering Firm • EPA Region 6 HQ
             </p>
           </div>
-          <p className="text-[11px] leading-relaxed text-muted-foreground/70 max-w-4xl">
-            The information provided on this platform is for general informational purposes only and does not constitute professional, financial, legal, or environmental advice. All data, analytics, forecasts, and reports generated through Ioratech are based on models, algorithms, and third-party data sources which may contain inaccuracies or omissions. Iora Technologies, Inc. makes no warranties, express or implied, regarding the accuracy, completeness, reliability, or suitability of any information, data, or outputs provided through this platform. Users are solely responsible for verifying any outputs and relying on them at their own risk. Iora Technologies, Inc., its parent company Lysandra Group of Companies, and their respective officers, directors, employees, agents, and affiliates shall not be held liable for any direct, indirect, incidental, consequential, special, or punitive damages, losses, or expenses arising from or in connection with the use of, or reliance on, any content, data, or services provided through this platform. Past performance of any model or forecast is not indicative of future results. Carbon metrics, risk assessments, and compliance indicators are provided as estimates and should be independently validated before use in regulatory filings, investment decisions, or corporate reporting. This platform may contain links to third-party websites or services; Iora Technologies, Inc. assumes no responsibility for the content, privacy practices, or policies of any third parties. By accessing or using this platform, you acknowledge and agree to these terms and disclaimers.
+          <p className="text-[11px] leading-relaxed text-muted-foreground/70 max-w-5xl">
+            Disclaimer: Information provided on this website is intended for general informational and preliminary engineering evaluation purposes. Formal environmental site assessments, regulatory permit applications, and remediation design reports require site-specific sampling and direct execution under the supervision of a Licensed Professional Engineer (PE) or Professional Geologist (PG). Iora Environmental Technologies, Inc. and its parent Lysandra Group disclaim liability for decisions made prior to formal engineering engagement.
           </p>
         </div>
       </div>

@@ -1,124 +1,192 @@
 "use client";
 
 import {
-  Activity,
-  FileText,
-  Globe,
-  Shield,
-  Sliders,
-  ArrowUpRight,
+  Droplets,
+  Sprout,
+  ShieldCheck,
+  Wind,
+  Trash2,
+  FileCheck2,
+  ArrowRight,
+  CheckCircle,
 } from "lucide-react";
 
-const capabilities = [
+const services = [
   {
-    icon: Activity,
-    title: "Carbon Footprint Modeling",
-    shortDesc: "Scope 1, 2 & 3 tracking",
+    icon: Droplets,
+    title: "Water Resources & Hydrogeology",
+    category: "Air & Water Testing",
+    image: "/water_quality.jpg",
     description:
-      "Comprehensive emissions accounting across your entire value chain with automated data pipelines and supplier engagement tools.",
-    metrics: ["500+ data connectors", "98.5% accuracy", "Real-time updates"],
+      "Advanced water quality monitoring, NPDES discharge permitting, storm water pollution prevention plans (SWPPP), and groundwater contaminant tracking.",
+    capabilities: [
+      "Effluent & Surface Water Testing",
+      "Hydrogeologic Aquifer Modeling",
+      "PFAS & Heavy Metals Detection",
+      "Industrial Wastewater Pretreatment",
+    ],
   },
   {
-    icon: Globe,
-    title: "Risk Forecasting Engine",
-    shortDesc: "Physical & transition risk",
+    icon: Sprout,
+    title: "Soil Remediation & Site Restoration",
+    category: "Site Cleanup",
+    image: "/soil_remediation.jpg",
     description:
-      "Quantify climate risks using NGFS scenarios and advanced spatial analytics. Map exposures across assets and supply chains.",
-    metrics: ["8 climate scenarios", "Global coverage", "Asset-level detail"],
+      "Turnkey site assessment, brownfield redevelopment, in-situ bioremediation, and soil decontamination for industrial and commercial real estate.",
+    capabilities: [
+      "Phase I & II Environmental Site Assessments (ESA)",
+      "Vapor Intrusion Mitigation",
+      "Excavation & Excavated Material Management",
+      "Brownfield Tax Credit Documentation",
+    ],
   },
   {
-    icon: Shield,
-    title: "Regulatory Monitoring",
-    shortDesc: "Global compliance tracking",
+    icon: ShieldCheck,
+    title: "Environmental Compliance & Auditing",
+    category: "Regulatory Governance",
     description:
-      "Stay ahead of evolving climate regulations across 190+ jurisdictions. Automated alerts and compliance gap analysis.",
-    metrics: ["190+ jurisdictions", "Daily updates", "Gap analysis"],
+      "End-to-end compliance management across EPA, OSHA, state regulatory bodies, and international ISO 14001 audit standards.",
+    capabilities: [
+      "Title V Air & Resource Permitting",
+      "SPCC & Facility Response Plans",
+      "EHS Compliance Management",
+      "Annual Regulatory Audit Reports",
+    ],
   },
   {
-    icon: Sliders,
-    title: "Scenario Simulation",
-    shortDesc: "Strategic modeling",
+    icon: Wind,
+    title: "Air Quality & Emission Controls",
+    category: "Atmospheric Services",
     description:
-      "Model the financial impact of different decarbonization pathways and policy scenarios on your portfolio.",
-    metrics: ["Monte Carlo engine", "Custom scenarios", "Board-ready outputs"],
+      "Stack testing, continuous emissions monitoring (CEMS), odor dispersion modeling, and ambient air sampling for industrial facilities.",
+    capabilities: [
+      "VOC & Hazardous Air Pollutant Testing",
+      "AERMOD Dispersion Modeling",
+      "GHG Inventory Validation",
+      "Fugitive Dust Containment",
+    ],
   },
   {
-    icon: FileText,
-    title: "ESG Reporting Automation",
-    shortDesc: "Framework alignment",
+    icon: Trash2,
+    title: "Hazardous Materials & Waste Solutions",
+    category: "Waste Infrastructure",
     description:
-      "Generate disclosure-ready reports aligned with TCFD, CSRD, SEC, and other major frameworks with audit trails.",
-    metrics: ["12+ frameworks", "Audit-ready", "Auto-generation"],
+      "Full lifecycle hazardous waste classification, transportation compliance, asbestos/lead abatement oversight, and spill prevention.",
+    capabilities: [
+      "RCRA Hazardous Waste Compliance",
+      "24/7 Chemical Emergency Response",
+      "Industrial Tank Integrity Testing",
+      "Universal & Special Waste Audits",
+    ],
+  },
+  {
+    icon: FileCheck2,
+    title: "Ecological & Wetlands Consulting",
+    category: "Natural Resources",
+    description:
+      "Wetland delineation, Section 404/401 permitting, endangered species habitat evaluation, and ecological impact mitigation design.",
+    capabilities: [
+      "Biological & Botanical Surveys",
+      "Wetland Mitigation Banking",
+      "NEPA Environmental Impact Statements",
+      "Habitat Conservation Planning",
+    ],
   },
 ];
 
 export function CapabilitiesSection() {
   return (
-    <section id="capabilities" className="py-20 md:py-28 relative overflow-hidden bg-background border-b border-border/40">
-      <div className="container px-4 md:px-6 mx-auto">
+    <section id="services" className="py-20 md:py-28 relative bg-background border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
         {/* Header */}
-        <div className="max-w-2xl mb-16">
-          <div className="inline-flex items-center rounded-full border border-border/50 bg-muted/30 px-3 py-1 text-xs font-mono uppercase tracking-wider mb-6">
-            Platform Capabilities
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-md bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+              Comprehensive Engineering & Field Solutions
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
+              Core Environmental Disciplines
+            </h2>
+            <p className="text-base sm:text-lg text-muted-foreground mt-4 leading-relaxed">
+              Delivering field-verified science, rigorous regulatory compliance, and sustainable engineering to safeguard air, land, and water resources.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight mb-4">
-            Core Infrastructure
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
-            A complete suite of computational tools for climate risk, engineered for scale and precision.
-          </p>
+          <div className="shrink-0">
+            <a
+              href="#contact"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+            >
+              Request Custom Project Scope <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
         </div>
 
         {/* Grid layout */}
-        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6">
-          {capabilities.map((capability, index) => {
-            // Bento layout
-            let colSpanClasses = "lg:col-span-4 md:col-span-3";
-            if (index === 0) colSpanClasses = "lg:col-span-8 md:col-span-6";
-            if (index === 4) colSpanClasses = "lg:col-span-4 md:col-span-6";
-
-            const Icon = capability.icon;
-
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {services.map((service) => {
+            const Icon = service.icon;
             return (
               <div
-                key={capability.title}
-                className={`group relative overflow-hidden rounded-xl border border-border/50 bg-card p-6 transition-all duration-300 hover:border-border hover:shadow-sm ${colSpanClasses}`}
+                key={service.title}
+                className="group relative flex flex-col justify-between rounded-xl border border-border bg-card p-6 sm:p-7 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/50"
               >
-                <div className="relative z-10 flex flex-col h-full justify-between">
-                  <div>
-                    {/* Icon */}
-                    <div className="mb-6 h-10 w-10 rounded-lg bg-muted flex items-center justify-center border border-border/50">
-                      <Icon className="h-5 w-5 text-foreground" />
+                <div>
+                  {/* Category Tag & Icon */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="h-12 w-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+                      <Icon className="h-6 w-6" />
                     </div>
-
-                    {/* Content */}
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <h3 className="text-lg font-semibold tracking-tight">
-                        {capability.title}
-                      </h3>
-                      <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                      {capability.description}
-                    </p>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2.5 py-1 rounded">
+                      {service.category}
+                    </span>
                   </div>
 
-                  {/* Metrics */}
-                  <div className="flex flex-wrap gap-1.5 pt-4 border-t border-border/30">
-                    {capability.metrics.map((metric) => (
-                      <span
-                        key={metric}
-                        className="inline-flex items-center rounded bg-muted/50 px-2 py-0.5 text-[10px] font-mono text-muted-foreground"
-                      >
-                        {metric}
-                      </span>
+                  {/* Title & Description */}
+                  <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                    {service.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                    {service.description}
+                  </p>
+
+                  {/* Image showcase if available */}
+                  {service.image && (
+                    <div className="mb-6 rounded-lg overflow-hidden border border-border h-40">
+                      <img
+                        src={service.image}
+                        alt={service.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Key Deliverables / Capabilities List */}
+                  <div className="space-y-2.5 pt-4 border-t border-border/60">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-foreground mb-2">
+                      Key Services & Deliverables
+                    </div>
+                    {service.capabilities.map((item) => (
+                      <div key={item} className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <CheckCircle className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </div>
                     ))}
                   </div>
+                </div>
+
+                <div className="mt-8 pt-4 border-t border-border flex items-center justify-between text-xs font-semibold text-primary">
+                  <span>Learn Detailed Capabilities</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
             );
           })}
         </div>
+
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { verifyFirebaseToken, type FirebaseJwtPayload } from "@/lib/verify-token";
 import { getDocById } from "@/lib/firestore";
+import { checkRateLimit, API_RATE_LIMIT, getClientIp } from "@/lib/rate-limit";
 
 export interface AuthResult {
   authenticated: boolean;
@@ -20,6 +21,15 @@ export async function requireAuth(request: NextRequest): Promise<AuthResult> {
 
   if (!payload) {
     return { authenticated: false, userId: null, tokenPayload: null, error: "Invalid or expired token" };
+  }
+
+  const { allowed } = checkRateLimit(payload.user_id, {
+    ...API_RATE_LIMIT,
+    keyPrefix: "user_api",
+  });
+
+  if (!allowed) {
+    return { authenticated: false, userId: null, tokenPayload: null, error: "Rate limit exceeded" };
   }
 
   return { authenticated: true, userId: payload.user_id, tokenPayload: payload };

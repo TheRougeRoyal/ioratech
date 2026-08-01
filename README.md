@@ -99,7 +99,8 @@ Verify: `curl https://iora-ml.onrender.com/ml/health`
 - **Authentication**: Firebase auth with signup, login, password reset
 - **API keys**: Create, list, validate, revoke
 - **Role-based access**: Owner, admin, member, viewer
-- **Rate limiting & audit logging**
+- **Team management**: Invite, manage, and remove team members
+- **Rate limiting**
 - **Footer pages**: About, contact, blog, docs, API docs, status, security, DPA, privacy, terms, careers
 
 ## ML API Endpoints
@@ -126,3 +127,6 @@ Verify: `curl https://iora-ml.onrender.com/ml/health`
 | DELETE | `/api/api-keys/revoke`    | Revoke API key        |
 | POST   | `/api/api-keys/validate`  | Validate API key      |
 | GET    | `/api/dashboard/data`     | Dashboard data        |
+| GET    | `/api/team/members`       | List team members     |
+| POST   | `/api/team/members`       | Invite team member    |
+| DELETE | `/api/team/members?id=`   | Remove team member    |

@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { Building2, TrendingUp, Landmark, Factory } from "lucide-react";
 
 const audiences = [
@@ -38,28 +35,18 @@ export function AudienceSection() {
   return (
     <section className="py-20 md:py-32">
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Built for Decision Makers</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Trusted by organizations that require institutional-grade climate data
             and analytics for strategic planning.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {audiences.map((audience, index) => (
-            <motion.div
+            <div
               key={audience.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
               className="group p-6 md:p-8 rounded-xl border border-border/50 bg-card/50 hover:border-border hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start space-x-4">
@@ -79,7 +66,7 @@ export function AudienceSection() {
                   </ul>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

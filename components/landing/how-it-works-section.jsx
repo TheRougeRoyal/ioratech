@@ -1,103 +1,103 @@
 "use client";
 
-import { Database, Cpu, FileOutput, ShieldCheck, Check } from "lucide-react";
+import { Search, FlaskConical, Wrench, ShieldCheck } from "lucide-react";
 
-const steps = [
+const workflowSteps = [
   {
-    icon: Database,
-    number: "01",
-    title: "Data Ingestion",
+    step: "01",
+    icon: Search,
+    title: "Site Assessment & Regulatory Discovery",
     description:
-      "Connect to your ERP, utility providers, and supply chain systems. Our automated pipelines ensure data quality and completeness across 500+ integrations.",
-    details: ["API integrations", "Automated validation", "Real-time sync"],
+      "Historical land use research, Phase I ESA audits, aerial GIS mapping, and initial environmental hazard profiling.",
   },
   {
-    icon: Cpu,
-    number: "02",
-    title: "Modeling & Risk Intelligence",
+    step: "02",
+    icon: FlaskConical,
+    title: "Field Sampling & Laboratory Analysis",
     description:
-      "ML models trained on millions of data points analyze your operations against climate scenarios. Monte Carlo simulations quantify risks in financial terms.",
-    details: ["AI analysis", "Scenario modeling", "Risk quantification"],
+      "Certified field technicians extract soil, groundwater, and air samples analyzed under NELAP/EPA certified protocols.",
   },
   {
-    icon: FileOutput,
-    number: "03",
-    title: "Strategic Output & Reporting",
+    step: "03",
+    icon: Wrench,
+    title: "Engineering & Remediation Execution",
     description:
-      "Generate board-ready reports, regulatory disclosures, and strategic recommendations. All outputs are audit-ready and framework-aligned.",
-    details: ["TCFD/CSRD aligned", "Audit trails", "Board presentations"],
+      "Custom design and deployment of containment systems, in-situ chemical oxidation, filtration units, or habitat buffers.",
   },
   {
+    step: "04",
     icon: ShieldCheck,
-    number: "04",
-    title: "Assured & Standards-Aligned",
+    title: "Permitting & Regulatory Sign-Off",
     description:
-      "Calculations are traceable and reproducible, aligned with GHG Protocol, PCAF, and ISSB standards. Verified by leading assurance providers.",
-    details: ["GHG Protocol", "PCAF & ISSB", "Independent verification"],
+      "Submitting complete compliance dossiers to federal, state, and local regulatory bodies to achieve 'No Further Action' (NFA) status.",
   },
 ];
 
 export function HowItWorksSection() {
   return (
-    <section
-      id="how-it-works"
-      className="py-20 md:py-28 relative overflow-hidden bg-muted/20 border-b border-border/40"
-    >
-      <div className="container px-4 md:px-6 mx-auto max-w-5xl">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center rounded-full border border-border/50 bg-background px-3 py-1 text-xs font-mono uppercase tracking-wider mb-6">
-            Architecture
+    <section id="methodology" className="py-20 md:py-28 bg-muted/30 border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 rounded-md bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+            Proven Engineering Protocol
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight mb-4">
-            Rigorous by Design
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
+            Our 4-Phase Delivery Framework
           </h2>
-          <p className="text-base sm:text-lg text-muted-foreground mx-auto max-w-2xl text-balance">
-            From raw data ingestion to assured strategic decisions. A predictable, highly engineered pipeline.
+          <p className="text-base sm:text-lg text-muted-foreground mt-4 leading-relaxed">
+            From initial site investigation to final regulatory clearance, we enforce strict quality controls and scientific precision at every stage.
           </p>
         </div>
 
-        {/* Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map((step) => {
-            const Icon = step.icon;
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+          {workflowSteps.map((item, idx) => {
+            const Icon = item.icon;
             return (
               <div
-                key={step.title}
-                className="relative bg-card border border-border/50 rounded-xl p-5 flex flex-col justify-between hover:border-border transition-colors duration-300"
+                key={item.step}
+                className="relative bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col justify-between"
               >
                 <div>
-                  {/* Step badge */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center border border-border/50">
-                      <Icon className="h-4.5 w-4.5 text-foreground" />
-                    </div>
-                    <span className="font-mono text-xs text-muted-foreground tracking-wider uppercase">
-                      Step {step.number}
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-3xl font-extrabold text-primary/40 font-mono">
+                      {item.step}
                     </span>
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+                      <Icon className="h-5 w-5" />
+                    </div>
                   </div>
 
-                  <h3 className="text-base font-semibold tracking-tight mb-2">
-                    {step.title}
+                  <h3 className="text-lg font-bold text-foreground mb-3 leading-snug">
+                    {item.title}
                   </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    {step.description}
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {item.description}
                   </p>
                 </div>
 
-                {/* Details tags */}
-                <div className="space-y-1.5 pt-3 border-t border-border/30">
-                  {step.details.map((detail) => (
-                    <div key={detail} className="flex items-center text-[10px] text-muted-foreground font-mono">
-                      <Check className="h-3 w-3 text-emerald-500 mr-1.5 shrink-0" />
-                      {detail}
-                    </div>
-                  ))}
+                <div className="mt-6 pt-4 border-t border-border/50 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  Phase {idx + 1} Deliverable
                 </div>
               </div>
             );
           })}
         </div>
+
+        {/* Quality Assurance Statement Box */}
+        <div className="mt-16 bg-card border border-border rounded-xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+          <div className="space-y-1">
+            <h4 className="text-base font-bold text-foreground">ISO 9001 & ISO 14001 Quality Management Certified</h4>
+            <p className="text-sm text-muted-foreground">Every field sample and engineering report undergoes multi-tier Senior Professional Engineer (PE) review.</p>
+          </div>
+          <div className="shrink-0">
+            <span className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-md border border-primary/20">
+              Zero Non-Compliance Guarantee
+            </span>
+          </div>
+        </div>
+
       </div>
     </section>
   );

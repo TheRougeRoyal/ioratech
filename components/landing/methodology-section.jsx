@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { Database, Cpu, LineChart, ShieldCheck } from "lucide-react";
 
 const steps = [
@@ -34,31 +31,21 @@ export function MethodologySection() {
   return (
     <section id="methodology" className="py-20 md:py-32 bg-muted/30">
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Methodology</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Rigorous, transparent, and aligned with global standards.
             Every data point is traceable, every calculation is reproducible.
           </p>
-        </motion.div>
+        </div>
 
         <div className="relative">
           <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-border" />
           
           <div className="space-y-12">
             {steps.map((step, index) => (
-              <motion.div
+              <div
                 key={step.title}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
                 className={`flex items-center gap-8 ${
                   index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
                 }`}
@@ -84,7 +71,7 @@ export function MethodologySection() {
                   <div className="h-4 w-4 rounded-full bg-primary border-4 border-background" />
                 </div>
                 <div className="flex-1 hidden md:block" />
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

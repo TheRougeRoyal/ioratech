@@ -22,7 +22,259 @@ import {
   Plus,
   Loader2,
   User,
+  Trash2,
+  Shield,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const ROLE_OPTIONS = ["admin", "member", "viewer"];
+const ROLE_STYLES = {
+  owner: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800",
+  admin: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800",
+  member: "bg-muted text-muted-foreground",
+  viewer: "bg-muted text-muted-foreground",
+};
+
+function TeamManagementTab() {
+  const { user, getIdToken } = useAuth();
+  const { toast } = useToast();
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("member");
+  const [inviting, setInviting] = useState(false);
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
+
+  const fetchMembers = useCallback(async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const token = await getIdToken();
+      const res = await fetch("/api/team/members", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setMembers(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch members:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, getIdToken]);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) {
+      toast({ title: "Error", description: "Email is required", variant: "destructive" });
+      return;
+    }
+
+    try {
+      setInviting(true);
+      const token = await getIdToken();
+      const res = await fetch("/api/team/members", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: "Success", description: "Member added successfully" });
+        setInviteOpen(false);
+        setInviteEmail("");
+        setInviteRole("member");
+        fetchMembers();
+      } else {
+        toast({ title: "Error", description: json.error?.message || "Failed to add member", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to add member", variant: "destructive" });
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!selectedMember) return;
+    try {
+      const token = await getIdToken();
+      const res = await fetch(`/api/team/members?id=${selectedMember.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: "Success", description: "Member removed" });
+        setMembers(members.filter((m) => m.id !== selectedMember.id));
+      } else {
+        toast({ title: "Error", description: json.error?.message || "Failed to remove member", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to remove member", variant: "destructive" });
+    } finally {
+      setRemoveDialogOpen(false);
+      setSelectedMember(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6 flex items-center justify-center">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-sm">Team members</CardTitle>
+              <CardDescription>Manage who has access to your organization</CardDescription>
+            </div>
+            <Button size="sm" onClick={() => setInviteOpen(true)}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              Invite
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {members.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="h-8 w-8 mx-auto text-muted-foreground/60 mb-2" />
+              <p className="text-sm font-medium">No team members yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Invite colleagues to collaborate.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {members.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
+                      {(member.name || member.email || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{member.name || "Unnamed"}</p>
+                      <p className="text-xs text-muted-foreground">{member.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={`text-[10px] capitalize ${ROLE_STYLES[member.role] || ""}`}>
+                      {member.role}
+                    </Badge>
+                    {member.role !== "owner" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          setSelectedMember(member);
+                          setRemoveDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Invite Team Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Send an invite to a colleague. They must already have an account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>Email address</Label>
+              <Input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="colleague@company.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin — full access</SelectItem>
+                  <SelectItem value="member">Member — read & write</SelectItem>
+                  <SelectItem value="viewer">Viewer — read only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <Button onClick={handleInvite} disabled={inviting} size="sm">
+                {inviting && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                Invite
+              </Button>
+            </div>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Team Member?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove {selectedMember?.name || selectedMember?.email} from the team. They will lose access immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button variant="destructive" size="sm" onClick={handleRemove}>
+              Remove
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
 
 const NOTIFICATION_ITEMS = [
   { key: "email_reports", title: "Email Reports", desc: "Weekly summary reports" },
@@ -386,15 +638,7 @@ function SettingsContent() {
         </TabsContent>
 
         <TabsContent value="team" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Team members</CardTitle>
-              <CardDescription>Manage who has access</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Team management coming soon.</p>
-            </CardContent>
-          </Card>
+          <TeamManagementTab />
         </TabsContent>
       </Tabs>
     </div>
