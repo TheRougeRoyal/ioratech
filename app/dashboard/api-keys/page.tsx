@@ -1,10 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
+const STORAGE_KEY = "ioratech.apiKeys";
+
+const MOCK_KEYS = [
+  {
+    id: "mk_01HZ8XK3G7M2P4Q5R6T8V9W0AY",
+    name: "Production server",
+    key_preview: "sk_live_a1b2••••c3d4••••e5f6",
+    created_at: "2026-07-14T09:23:00.000Z",
+  },
+  {
+    id: "mk_01HZ8XK3G7M2P4Q5R6T8V9W0B4",
+    name: "Staging CI",
+    key_preview: "sk_test_7g8h••••i9j0••••k1l2",
+    created_at: "2026-07-22T15:08:00.000Z",
+  },
+  {
+    id: "mk_01HZ8XK3G7M2P4Q5R6T8V9W0C7",
+    name: "Local dev",
+    key_preview: "sk_dev_m3n4••••o5p6••••q7r8",
+    created_at: "2026-08-02T11:42:00.000Z",
+  },
+];
+
+function readKeys() {
+  if (typeof window === "undefined") return [];
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw === null) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_KEYS));
+    return MOCK_KEYS;
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return MOCK_KEYS;
+  }
+}
+
 export default function ApiKeysPage() {
-  const [apiKeys] = useState([]);
+  const [apiKeys, setApiKeys] = useState([]);
+
+  useEffect(() => {
+    setApiKeys(readKeys());
+  }, []);
+
+  const revoke = (id) => {
+    const next = apiKeys.filter((k) => k.id !== id);
+    setApiKeys(next);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  };
 
   return (
     <div className="space-y-6">
@@ -46,7 +93,10 @@ export default function ApiKeysPage() {
                   {k.key_preview}
                 </code>
               </div>
-              <button className="text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50">
+              <button
+                onClick={() => revoke(k.id)}
+                className="text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50"
+              >
                 Revoke
               </button>
             </div>

@@ -3,6 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 
+const STORAGE_KEY = "ioratech.apiKeys";
+
+function randomToken() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 export default function CreateApiKeyPage() {
   const [name, setName] = useState("");
   const [expiresIn, setExpiresIn] = useState("");
@@ -13,6 +21,15 @@ export default function CreateApiKeyPage() {
     e.preventDefault();
     setLoading(true);
     await new Promise((r) => setTimeout(r, 800));
+    const token = randomToken();
+    const key = {
+      id: `mk_${randomToken()}`,
+      name: name.trim(),
+      key_preview: `sk_live_${token.slice(0, 4)}••••${token.slice(4, 8)}••••${token.slice(8, 12)}`,
+      created_at: new Date().toISOString(),
+    };
+    const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([key, ...existing]));
     setLoading(false);
     setSuccess(true);
   };
