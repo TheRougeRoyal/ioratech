@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Loader2, CheckCircle } from "lucide-react";
 
 export default function RequestAccessPage() {
   const [loading, setLoading] = useState(false);
@@ -26,170 +20,133 @@ export default function RequestAccessPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((r) => setTimeout(r, 1000));
     setLoading(false);
     setSubmitted(true);
   };
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-muted/20">
-        <div className="w-full max-w-md text-center">
-          <Card className="border-border/50 bg-card">
-            <CardContent className="pt-12 pb-8">
-              <div className="flex justify-center mb-6">
-                <div className="h-14 w-14 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/20">
-                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-              <h2 className="text-xl font-semibold mb-2">Request Received</h2>
-              <p className="text-sm text-muted-foreground mb-8">
-                Thank you for your interest in Iora. Our team will review your request and reach out within 1-2 business days.
-              </p>
-              <Link href="/">
-                <Button variant="outline" className="rounded-md">Return to Home</Button>
-              </Link>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-white dark:bg-neutral-950">
+        <div className="w-full max-w-sm text-center">
+          <h1 className="text-xl font-semibold mb-2">Request received</h1>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
+            Thanks for your interest. We'll review and reach out within 1–2 business days.
+          </p>
+          <Link href="/" className="text-sm font-medium hover:underline">
+            Return home
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-muted/20">
-      <div className="w-full max-w-md">
-        <Link
-          href="/"
-          className="inline-flex items-center text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground mb-6"
-        >
-          <ArrowLeft className="h-3.5 w-3.5 mr-2" />
-          Back to home
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-white dark:bg-neutral-950">
+      <div className="w-full max-w-sm">
+        <Link href="/" className="block text-center text-sm font-semibold tracking-tight mb-8">
+          Iora
         </Link>
 
-        <Card className="border-border/50 bg-card">
-          <CardHeader className="text-center pb-4">
-            <div className="flex justify-center mb-4">
-              <div className="h-8 w-8 rounded bg-foreground flex items-center justify-center">
-                <span className="text-sm font-bold text-background">I</span>
-              </div>
+        <h1 className="text-xl font-semibold mb-1">Request access</h1>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
+          Tell us about your organization.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">First name</label>
+              <input
+                placeholder="Jane"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                required
+                className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
+              />
             </div>
-            <CardTitle className="text-xl tracking-tight">Request Access</CardTitle>
-            <CardDescription className="text-xs mt-1">
-              Tell us about your organization and how we can help with your climate intelligence needs.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="firstName" className="text-xs font-medium">First Name</Label>
-                  <Input
-                    id="firstName"
-                    placeholder="John"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    required
-                    className="h-9 text-sm"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="lastName" className="text-xs font-medium">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    placeholder="Smith"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    required
-                    className="h-9 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-medium">Work Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="john@company.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="company" className="text-xs font-medium">Company</Label>
-                <Input
-                  id="company"
-                  placeholder="Acme Corporation"
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  required
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="jobTitle" className="text-xs font-medium">Job Title</Label>
-                <Input
-                  id="jobTitle"
-                  placeholder="Chief Sustainability Officer"
-                  value={formData.jobTitle}
-                  onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                  required
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="companySize" className="text-xs font-medium">Company Size</Label>
-                <Select
-                  value={formData.companySize}
-                  onValueChange={(value) => setFormData({ ...formData, companySize: value })}
-                >
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="Select company size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1-50">1-50 employees</SelectItem>
-                    <SelectItem value="51-200">51-200 employees</SelectItem>
-                    <SelectItem value="201-1000">201-1,000 employees</SelectItem>
-                    <SelectItem value="1001-5000">1,001-5,000 employees</SelectItem>
-                    <SelectItem value="5001+">5,001+ employees</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="useCase" className="text-xs font-medium">How can we help?</Label>
-                <Textarea
-                  id="useCase"
-                  placeholder="Tell us about your climate data and reporting needs..."
-                  value={formData.useCase}
-                  onChange={(e) => setFormData({ ...formData, useCase: e.target.value })}
-                  rows={3}
-                  className="text-sm resize-none"
-                />
-              </div>
-              <Button type="submit" className="w-full h-9 text-sm bg-foreground text-background hover:bg-foreground/90 mt-2" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Request"
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex justify-center border-t border-border/30 pt-4">
-            <p className="text-xs text-muted-foreground">
-              Already have an account?{" "}
-              <Link href="/login" className="text-foreground hover:underline font-medium">
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
+            <div>
+              <label className="block text-sm font-medium mb-1">Last name</label>
+              <input
+                placeholder="Doe"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                required
+                className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Work email</label>
+            <input
+              type="email"
+              placeholder="jane@company.com"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Company</label>
+            <input
+              placeholder="Acme Corp"
+              value={formData.company}
+              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              required
+              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Job title</label>
+            <input
+              placeholder="Sustainability Lead"
+              value={formData.jobTitle}
+              onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+              required
+              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Company size</label>
+            <Select value={formData.companySize} onValueChange={(v) => setFormData({ ...formData, companySize: v })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1-50">1–50</SelectItem>
+                <SelectItem value="51-200">51–200</SelectItem>
+                <SelectItem value="201-1000">201–1,000</SelectItem>
+                <SelectItem value="1001-5000">1,001–5,000</SelectItem>
+                <SelectItem value="5001+">5,001+</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">How can we help?</label>
+            <textarea
+              rows={3}
+              placeholder="Briefly describe your needs"
+              value={formData.useCase}
+              onChange={(e) => setFormData({ ...formData, useCase: e.target.value })}
+              className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50 resize-none"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full h-9 bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-50"
+          >
+            {loading ? "Submitting..." : "Submit request"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-neutral-500">
+          Already have an account?{" "}
+          <Link href="/login" className="text-neutral-900 dark:text-neutral-50 font-medium hover:underline">
+            Log in
+          </Link>
+        </p>
       </div>
     </div>
   );

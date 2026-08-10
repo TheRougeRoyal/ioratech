@@ -1,61 +1,48 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Plus, FileText, Inbox } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Download,
-  FileText,
-  Calendar,
-  Clock,
-  CheckCircle,
-  ExternalLink,
-  Eye,
-  Share2,
-  Plus,
-  Loader2,
-  Inbox,
-} from "lucide-react";
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
-const reportTypes = ["ESG Report", "Quarterly Report", "Risk Assessment", "Compliance Report", "Annual Report", "Custom"];
-const frameworkOptions = ["TCFD", "GRI", "SASB", "GHG Protocol", "CSRD", "ESRS", "ISSB", "CDP"];
+const TYPES = ["ESG Report", "Quarterly Report", "Risk Assessment", "Compliance Report", "Annual Report", "Custom"];
+const FRAMEWORKS = ["TCFD", "GRI", "SASB", "GHG Protocol", "CSRD", "ESRS", "ISSB", "CDP"];
 
-const statusStyles = {
-  published: "text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-400",
-  draft: "text-muted-foreground",
-  "in-review": "text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-400",
-};
+const MOCK = [
+  { id: "rp1", name: "Annual ESG Report 2024", type: "ESG Report", status: "published", date: "2024-03-15", frameworks: ["TCFD", "GRI", "SASB"] },
+  { id: "rp2", name: "Q1 2024 Climate Risk Assessment", type: "Risk Assessment", status: "published", date: "2024-04-01", frameworks: ["TCFD", "CDP"] },
+  { id: "rp3", name: "CSRD Readiness Report", type: "Compliance Report", status: "in-review", date: "2024-05-10", frameworks: ["CSRD", "ESRS"] },
+  { id: "rp4", name: "Scope 3 Deep Dive", type: "Quarterly Report", status: "draft", date: "2024-06-01", frameworks: ["GHG Protocol"] },
+  { id: "rp5", name: "Sustainability Report 2025", type: "Annual Report", status: "draft", date: null, frameworks: ["TCFD", "GRI", "SASB", "CDP"] },
+];
+
+function Skeleton() {
+  return <div className="h-3 w-32 bg-neutral-200 dark:bg-neutral-800 animate-pulse" />;
+}
+
+function statusClasses(s) {
+  if (s === "published") return "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800";
+  if (s === "in-review") return "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800";
+  return "text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800";
+}
 
 export default function ReportsPage() {
   const { user, getIdToken } = useAuth();
-  const { toast } = useToast();
-  const MOCK_REPORTS = [
-    { id: "rp1", name: "Annual ESG Report 2024", type: "ESG Report", status: "published", date: "2024-03-15", frameworks: ["TCFD", "GRI", "SASB"] },
-    { id: "rp2", name: "Q1 2024 Climate Risk Assessment", type: "Risk Assessment", status: "published", date: "2024-04-01", frameworks: ["TCFD", "CDP"] },
-    { id: "rp3", name: "CSRD Readiness Report", type: "Compliance Report", status: "in-review", date: "2024-05-10", frameworks: ["CSRD", "ESRS"] },
-    { id: "rp4", name: "Scope 3 Deep Dive", type: "Quarterly Report", status: "draft", date: "2024-06-01", frameworks: ["GHG Protocol"] },
-    { id: "rp5", name: "Sustainability Report 2025", type: "Annual Report", status: "draft", date: null, frameworks: ["TCFD", "GRI", "SASB", "CDP"] },
-  ];
-
+  const [reports, setReports] = useState(MOCK);
   const [loading, setLoading] = useState(true);
-  const [reportItems, setReportItems] = useState(MOCK_REPORTS);
+  const [tab, setTab] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [newReport, setNewReport] = useState({
-    name: "",
-    type: "",
-    status: "draft",
-    frameworks: [],
-  });
+  const [draft, setDraft] = useState({ name: "", type: "", frameworks: [] });
 
   const fetchReports = useCallback(async () => {
     if (!user) return;
@@ -63,336 +50,140 @@ export default function ReportsPage() {
       setLoading(true);
       const token = await getIdToken();
       if (!token) return;
-
-      const res = await fetch("/api/dashboard/reports", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const res = await fetch("/api/dashboard/reports", { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.data && json.data.length > 0) {
-          setReportItems(json.data);
-        }
+        if (json.success && json.data && json.data.length > 0) setReports(json.data);
       }
-    } catch (err) {
-      console.error("Failed to fetch reports:", err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); } finally { setLoading(false); }
   }, [user, getIdToken]);
 
-  useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
+  useEffect(() => { fetchReports(); }, [fetchReports]);
 
-  const handleAddReport = async () => {
-    if (!newReport.name || !newReport.type) {
-      toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" });
-      return;
-    }
-
+  const handleAdd = async () => {
+    if (!draft.name || !draft.type) { toast.error("Fill in all required fields"); return; }
     try {
       setSaving(true);
       const token = await getIdToken();
       if (!token) return;
-
       const res = await fetch("/api/dashboard/reports", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: newReport.name,
-          type: newReport.type,
-          status: newReport.status,
-          frameworks: newReport.frameworks,
-          date: new Date().toISOString().slice(0, 10),
+          name: draft.name, type: draft.type, status: "draft",
+          frameworks: draft.frameworks, date: new Date().toISOString().slice(0, 10),
         }),
       });
-
       if (res.ok) {
-        toast({ title: "Success", description: "Report created successfully" });
+        toast.success("Report created");
         setDialogOpen(false);
-        setNewReport({ name: "", type: "", status: "draft", frameworks: [] });
+        setDraft({ name: "", type: "", frameworks: [] });
         fetchReports();
-      } else {
-        toast({ title: "Error", description: "Failed to create report", variant: "destructive" });
-      }
-    } catch (err) {
-      console.error("Failed to create report:", err);
-      toast({ title: "Error", description: "Failed to create report", variant: "destructive" });
-    } finally {
-      setSaving(false);
-    }
+      } else toast.error("Failed to create report");
+    } catch (e) { console.error(e); toast.error("Failed to create report"); }
+    finally { setSaving(false); }
   };
 
-  const toggleFramework = (fw) => {
-    setNewReport((prev) => ({
-      ...prev,
-      frameworks: prev.frameworks.includes(fw)
-        ? prev.frameworks.filter((f) => f !== fw)
-        : [...prev.frameworks, fw],
-    }));
-  };
+  const toggleFw = (fw) => setDraft((p) => ({
+    ...p, frameworks: p.frameworks.includes(fw) ? p.frameworks.filter((f) => f !== fw) : [...p.frameworks, fw],
+  }));
 
-  const published = reportItems.filter((r) => r.status === "published");
-  const drafts = reportItems.filter((r) => r.status !== "published");
+  const published = reports.filter((r) => r.status === "published");
+  const drafts = reports.filter((r) => r.status !== "published");
+  const list = tab === "published" ? published : tab === "draft" ? drafts : reports;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
-          <p className="text-sm text-muted-foreground">
-            Generate and manage ESG disclosures and reports
+        <div>
+          <h1 className="text-lg font-semibold">Reports</h1>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Generate and manage ESG disclosures.
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
-              Create Report
-            </Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" />Create report</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Report</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>Report Name</Label>
-                <Input
-                  value={newReport.name}
-                  onChange={(e) => setNewReport({ ...newReport, name: e.target.value })}
-                  placeholder="e.g. Annual ESG Report 2024"
-                />
+            <DialogHeader><DialogTitle>Create report</DialogTitle></DialogHeader>
+            <div className="space-y-3 mt-3">
+              <div className="space-y-1">
+                <Label>Name</Label>
+                <Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="e.g. Annual ESG 2024" />
               </div>
-              <div className="space-y-2">
-                <Label>Report Type</Label>
-                <Select value={newReport.type} onValueChange={(v) => setNewReport({ ...newReport, type: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {reportTypes.map((type) => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
-                  </SelectContent>
+              <div className="space-y-1">
+                <Label>Type</Label>
+                <Select value={draft.type} onValueChange={(v) => setDraft({ ...draft, type: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>{TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label>Frameworks</Label>
-                <div className="flex flex-wrap gap-2">
-                  {frameworkOptions.map((fw) => (
-                    <Badge
-                      key={fw}
-                      variant={newReport.frameworks.includes(fw) ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => toggleFramework(fw)}
-                    >
+                <div className="flex flex-wrap gap-1.5">
+                  {FRAMEWORKS.map((fw) => (
+                    <button key={fw} type="button" onClick={() => toggleFw(fw)}
+                      className={`text-xs px-2 py-0.5 border ${draft.frameworks.includes(fw) ? "border-neutral-900 dark:border-neutral-50 bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900" : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400"}`}>
                       {fw}
-                    </Badge>
+                    </button>
                   ))}
                 </div>
               </div>
-              <Button onClick={handleAddReport} disabled={saving} className="w-full">
-                {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Create Report
+              <Button onClick={handleAdd} disabled={saving} className="w-full">
+                {saving ? "Creating..." : "Create report"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="published">Published</TabsTrigger>
-          <TabsTrigger value="draft">Drafts</TabsTrigger>
-        </TabsList>
+      <div className="flex gap-1 border-b border-neutral-200 dark:border-neutral-800">
+        {[["all", "All"], ["published", "Published"], ["draft", "Drafts"]].map(([k, l]) => (
+          <button key={k} onClick={() => setTab(k)}
+            className={`px-3 py-1.5 text-sm -mb-px border-b ${tab === k ? "border-neutral-900 dark:border-neutral-50 text-neutral-900 dark:text-neutral-50" : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-50"}`}>
+            {l}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="all" className="mt-4">
-          {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-5 space-y-3">
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-3 w-32" />
-                    <div className="flex gap-2">
-                      <Skeleton className="h-4 w-12" />
-                      <Skeleton className="h-4 w-12" />
+      {loading ? (
+        <div className="border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-800">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-4 space-y-2"><Skeleton /><div className="h-2 w-20 bg-neutral-200 dark:bg-neutral-800 animate-pulse" /></div>
+          ))}
+        </div>
+      ) : list.length === 0 ? (
+        <div className="border border-dashed border-neutral-300 dark:border-neutral-700 p-10 text-center">
+          <Inbox className="h-6 w-6 mx-auto text-neutral-400 mb-2" />
+          <p className="text-sm font-medium">No reports here</p>
+          <p className="text-xs text-neutral-500 mt-0.5">Create one to get started.</p>
+        </div>
+      ) : (
+        <div className="border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-800">
+          {list.map((r) => (
+            <div key={r.id} className="p-4 flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3 min-w-0">
+                <FileText className="h-4 w-4 text-neutral-400 mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium truncate">{r.name}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 border ${statusClasses(r.status)}`}>
+                      {r.status === "in-review" ? "In Review" : r.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{r.type} · {r.date || "No date"}</p>
+                  {r.frameworks?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {r.frameworks.map((fw) => <span key={fw} className="text-[10px] px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400">{fw}</span>)}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  )}
+                </div>
+              </div>
             </div>
-          ) : reportItems.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="p-10 text-center">
-                <Inbox className="h-8 w-8 mx-auto text-muted-foreground/60 mb-2" />
-                <h3 className="text-sm font-medium">No reports yet</h3>
-                <p className="text-xs text-muted-foreground mt-1">Generate your first report to get started.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {reportItems.map((report) => (
-                <Card key={report.id} className="hover:bg-accent/50 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3 min-w-0">
-                        <div className="p-2 rounded-md bg-muted shrink-0">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium truncate">{report.name}</h3>
-                            <Badge variant="outline" className={`text-[10px] shrink-0 ${statusStyles[report.status] || ""}`}>
-                              {report.status === "in-review" ? "In Review" : report.status}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">{report.type}</p>
-                          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                            <span className="inline-flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {report.date || "No date"}
-                            </span>
-                          </div>
-                          {report.frameworks && report.frameworks.length > 0 && (
-                            <div className="flex items-center gap-1.5 mt-2">
-                              {report.frameworks.map((fw) => (
-                                <Badge key={fw} variant="secondary" className="text-[10px]">
-                                  {fw}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Eye className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Share2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Download className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="published" className="mt-4">
-          {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-5 space-y-3">
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-3 w-32" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : published.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="p-10 text-center">
-                <Inbox className="h-8 w-8 mx-auto text-muted-foreground/60 mb-2" />
-                <h3 className="text-sm font-medium">No published reports</h3>
-                <p className="text-xs text-muted-foreground mt-1">Finalize and publish a report.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {published.map((report) => (
-                <Card key={report.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-                          <span className="text-sm font-medium">{report.name}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span className="inline-flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {report.date || "No date"}
-                          </span>
-                        </div>
-                        {report.frameworks && report.frameworks.length > 0 && (
-                          <div className="flex items-center gap-1.5 mt-1">
-                            {report.frameworks.map((fw) => (
-                              <Badge key={fw} variant="secondary" className="text-[10px]">{fw}</Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Open
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="draft" className="mt-4">
-          {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-5 space-y-3">
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-3 w-32" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : drafts.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="p-10 text-center">
-                <Inbox className="h-8 w-8 mx-auto text-muted-foreground/60 mb-2" />
-                <h3 className="text-sm font-medium">No drafts</h3>
-                <p className="text-xs text-muted-foreground mt-1">Start a report draft to collaborate.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {drafts.map((report) => (
-                <Card key={report.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{report.name}</span>
-                          <Badge variant="outline" className={`text-[10px] ${statusStyles[report.status] || ""}`}>
-                            {report.status === "draft" ? "Draft" : "In Review"}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{report.type}</p>
-                      </div>
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        Edit
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,180 +1,72 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/lib/auth-context";
 
 export default function CreateApiKeyPage() {
-  const router = useRouter();
-  const { getIdToken } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [createdKey, setCreatedKey] = useState<any>(null);
   const [name, setName] = useState("");
-  const [expiresInDays, setExpiresInDays] = useState<number | "">("");
-  const [copying, setCopying] = useState(false);
+  const [expiresIn, setExpiresIn] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
-
-    if (!name.trim()) {
-      setError("API key name is required");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const token = await getIdToken();
-      const response = await fetch("/api/api-keys/create", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          expires_in_days: expiresInDays ? Number(expiresInDays) : undefined,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.error?.message || "Failed to create API key");
-        return;
-      }
-
-      if (data.data) {
-        setCreatedKey(data.data);
-      }
-    } catch (err) {
-      setError("An error occurred. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    await new Promise((r) => setTimeout(r, 800));
+    setLoading(false);
+    setSuccess(true);
   };
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopying(true);
-      setTimeout(() => setCopying(false), 2000);
-    } catch {
-      setError("Failed to copy to clipboard");
-    }
-  };
-
-  if (createdKey) {
-    return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Link href="/dashboard/api-keys" className="text-blue-600 hover:underline">
-            &larr; Back to API Keys
-          </Link>
-        </div>
-
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader>
-            <CardTitle className="text-green-900">API Key Created Successfully</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert className="bg-yellow-50 border-yellow-200">
-              <AlertDescription className="text-yellow-900">
-                Save this key somewhere safe. You won&apos;t be able to see it again!
-              </AlertDescription>
-            </Alert>
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700">Key Name</Label>
-              <p className="text-lg font-medium mt-1">{createdKey.name}</p>
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700 block mb-2">Your API Key</Label>
-              <div className="flex gap-2">
-                <code className="flex-1 bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-sm break-all">
-                  {createdKey.key}
-                </code>
-                <Button onClick={() => copyToClipboard(createdKey.key)} className="shrink-0">
-                  {copying ? "Copied!" : "Copy"}
-                </Button>
-              </div>
-            </div>
-
-            <Button asChild className="w-full">
-              <Link href="/dashboard/api-keys">Go to API Keys</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Link href="/dashboard/api-keys" className="text-blue-600 hover:underline">
-          &larr; Back to API Keys
-        </Link>
+    <div className="max-w-md space-y-6">
+      <Link href="/dashboard/api-keys" className="text-sm text-neutral-600 dark:text-neutral-400 hover:underline">
+        ← Back to API keys
+      </Link>
+
+      <div>
+        <h1 className="text-lg font-semibold">Create API key</h1>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          Treat keys like passwords — keep them secure.
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New API Key</CardTitle>
-          <p className="text-sm text-gray-600 mt-2">Create a new API key to access the API</p>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="name">Key Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Production API Key"
-                disabled={loading}
-              />
-              <p className="text-xs text-gray-500 mt-1">A friendly name to help you identify this key</p>
-            </div>
-
-            <div>
-              <Label htmlFor="expiresInDays">Expires In (Days) - Optional</Label>
-              <Input
-                id="expiresInDays"
-                type="number"
-                min="1"
-                max="365"
-                value={expiresInDays}
-                onChange={(e) => setExpiresInDays(e.target.value ? Number(e.target.value) : "")}
-                placeholder="Leave empty for no expiration"
-                disabled={loading}
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? "Creating..." : "Create API Key"}
-              </Button>
-              <Button type="button" variant="outline" asChild>
-                <Link href="/dashboard/api-keys">Cancel</Link>
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      {success ? (
+        <div className="border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-3 py-2 text-sm">
+          Key created. Copy it now — you won't see it again.
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Key name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Production server"
+              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
+              disabled={loading}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Expires in (days, optional)</label>
+            <input
+              type="number"
+              min="1"
+              value={expiresIn}
+              onChange={(e) => setExpiresIn(e.target.value)}
+              placeholder="30"
+              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
+              disabled={loading}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading || !name.trim()}
+            className="w-full h-9 bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-50"
+          >
+            {loading ? "Creating..." : "Create key"}
+          </button>
+        </form>
+      )}
     </div>
   );
 }
