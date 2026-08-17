@@ -19,7 +19,7 @@ const NAV = [
 ];
 
 export default function DashboardLayout({ children }) {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, isDemo, signOut } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -40,6 +40,15 @@ export default function DashboardLayout({ children }) {
     <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50">
       {/* Top bar (mobile + desktop title strip) */}
       <header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 px-4 lg:px-6">
+        {isDemo && (
+          <span
+            className="hidden md:inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-2 py-0.5"
+            title="You're exploring Iora with sample data. Sign in to load your real account."
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+            Demo preview
+          </span>
+        )}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setOpen(true)}
