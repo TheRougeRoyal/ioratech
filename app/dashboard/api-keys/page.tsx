@@ -26,7 +26,14 @@ const MOCK_KEYS = [
   },
 ];
 
-function readKeys() {
+interface ApiKeyItem {
+  id: string;
+  name: string;
+  key_preview: string;
+  created_at: string;
+}
+
+function readKeys(): ApiKeyItem[] {
   if (typeof window === "undefined") return [];
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw === null) {
@@ -41,13 +48,13 @@ function readKeys() {
 }
 
 export default function ApiKeysPage() {
-  const [apiKeys, setApiKeys] = useState([]);
+  const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]);
 
   useEffect(() => {
     setApiKeys(readKeys());
   }, []);
 
-  const revoke = (id) => {
+  const revoke = (id: string) => {
     const next = apiKeys.filter((k) => k.id !== id);
     setApiKeys(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));

@@ -23,7 +23,7 @@ export async function requireAuth(request: NextRequest): Promise<AuthResult> {
     return { authenticated: false, userId: null, tokenPayload: null, error: "Invalid or expired token" };
   }
 
-  const { allowed } = checkRateLimit(payload.user_id, {
+  const { allowed } = await checkRateLimit(payload.user_id, {
     ...API_RATE_LIMIT,
     keyPrefix: "user_api",
   });

@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import type { ApiResponse } from '@/types/api';
 
 /**
@@ -109,16 +110,13 @@ export function createResponse<T>(
   message: string = 'Success',
   statusCode: number = 200,
   success: boolean = true
-): Response {
+): NextResponse {
   const responseData = success
     ? createSuccessResponse(data, message, statusCode)
     : createErrorResponse<T>(ErrorCode.INTERNAL_ERROR, message, undefined, statusCode);
 
-  return new Response(JSON.stringify(responseData.response), {
+  return NextResponse.json(responseData.response, {
     status: responseData.statusCode,
-    headers: {
-      'Content-Type': 'application/json',
-    },
   });
 }
 
@@ -129,12 +127,9 @@ export function createErrorResponseObj(
   code: ErrorCode,
   message: string,
   details?: any
-): Response {
-  const { response, statusCode } = createErrorResponse(code, message, details);
-  return new Response(JSON.stringify(response), {
+): NextResponse {
+  const { response, statusCode } = createErrorResponse(code, message, details, getStatusCodeForErrorCode(code));
+  return NextResponse.json(response, {
     status: statusCode,
-    headers: {
-      'Content-Type': 'application/json',
-    },
   });
 }

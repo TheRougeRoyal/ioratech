@@ -15,7 +15,7 @@ export async function withRateLimit(
   identifier?: string
 ): Promise<NextResponse> {
   const id = identifier || getClientIp(request);
-  const { allowed, remaining, resetTime } = checkRateLimit(id, config);
+  const { allowed, remaining, resetTime } = await checkRateLimit(id, config);
 
   if (!allowed) {
     return rateLimitResponse(resetTime);

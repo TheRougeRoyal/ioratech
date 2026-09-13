@@ -14,7 +14,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email || !password) {
@@ -38,11 +38,11 @@ export default function SignupPage() {
         body: JSON.stringify({ uid: user.uid, email: user.email, name: name || undefined }),
       });
       router.push("/dashboard");
-    } catch (err) {
+    } catch (err: any) {
       const msg =
-        err.code === "auth/email-already-in-use"
+        err?.code === "auth/email-already-in-use"
           ? "An account with this email already exists"
-          : err.code === "auth/weak-password"
+          : err?.code === "auth/weak-password"
           ? "Password is too weak"
           : "An error occurred. Please try again.";
       setError(msg);
@@ -62,8 +62,8 @@ export default function SignupPage() {
         body: JSON.stringify({ uid: user.uid, email: user.email, name: user.displayName || undefined }),
       });
       router.push("/dashboard");
-    } catch (err) {
-      if (err.code !== "auth/popup-closed-by-user") {
+    } catch (err: any) {
+      if (err?.code !== "auth/popup-closed-by-user") {
         setError("Google sign-up failed. Please try again.");
       }
     } finally {

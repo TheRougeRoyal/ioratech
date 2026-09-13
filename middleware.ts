@@ -9,14 +9,14 @@ const PUBLIC_PREFIXES = [
 
 const AUTH_PREFIXES = ["/api/auth/"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   for (const prefix of PUBLIC_PREFIXES) {
     if (pathname.startsWith(prefix)) {
       if (AUTH_PREFIXES.some((p) => pathname.startsWith(p))) {
         const ip = getClientIp(request);
-        const { allowed, resetTime } = checkRateLimit(ip, AUTH_RATE_LIMIT);
+        const { allowed, resetTime } = await checkRateLimit(ip, AUTH_RATE_LIMIT);
         if (!allowed) return rateLimitResponse(resetTime);
       }
       return NextResponse.next();

@@ -19,7 +19,8 @@
     "incremental": true,
     "isolatedModules": true,
     "types": [
-      "node"
+      "node",
+      "jest"
     ],
     "paths": {
       "@/*": [

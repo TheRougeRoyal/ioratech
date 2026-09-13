@@ -14,7 +14,7 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email || !password) {
@@ -25,13 +25,13 @@ function LoginForm() {
     try {
       await signIn(email, password);
       router.push(callbackUrl);
-    } catch (err) {
+    } catch (err: any) {
       const msg =
-        err.code === "auth/user-not-found"
+        err?.code === "auth/user-not-found"
           ? "No account found with this email"
-          : err.code === "auth/wrong-password"
+          : err?.code === "auth/wrong-password"
           ? "Incorrect password"
-          : err.code === "auth/invalid-credential"
+          : err?.code === "auth/invalid-credential"
           ? "Invalid email or password"
           : "An error occurred. Please try again.";
       setError(msg);
@@ -46,8 +46,8 @@ function LoginForm() {
     try {
       await signInWithGoogle();
       router.push(callbackUrl);
-    } catch (err) {
-      if (err.code !== "auth/popup-closed-by-user") {
+    } catch (err: any) {
+      if (err?.code !== "auth/popup-closed-by-user") {
         setError("Google sign-in failed. Please try again.");
       }
     } finally {

@@ -18,8 +18,21 @@ import {
   Database,
   Sparkles,
   CheckCircle2,
+  LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+
+interface Feature {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+}
+
+interface Step {
+  n: string;
+  title: string;
+  body: string;
+}
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -38,7 +51,7 @@ function ThemeToggle() {
   );
 }
 
-const FEATURES = [
+const FEATURES: Feature[] = [
   {
     icon: BarChart3,
     title: "Emissions tracking",
@@ -71,7 +84,7 @@ const FEATURES = [
   },
 ];
 
-const STEPS = [
+const STEPS: Step[] = [
   { n: "01", title: "Connect", body: "Plug in utility, ERP, and travel APIs or upload CSVs." },
   { n: "02", title: "Measure", body: "Activity data becomes emissions with methodology baked in." },
   { n: "03", title: "Decide", body: "See hotspots, model scenarios, prioritize reductions." },

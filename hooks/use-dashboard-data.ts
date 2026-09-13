@@ -1,129 +1,28 @@
-"use client";
+import useSWR from 'swr';
 
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/lib/auth-context";
-
-export interface DashboardData {
-  profile: {
-    id: string;
-    email: string;
-    name?: string;
-    company?: string;
-    industry?: string;
-    job_title?: string;
-    subscription_tier?: string;
-    onboarding_completed?: boolean;
-  } | null;
-  emissions: Array<{
-    id: string;
-    user_id: string;
-    scope: number;
-    category: string;
-    value: number;
-    unit?: string;
-    period?: string;
-    created_at?: string;
-  }>;
-  risks: Array<{
-    id: string;
-    user_id: string;
-    category: string;
-    risk_type: string;
-    score: number;
-    trend?: string;
-    description?: string;
-    created_at?: string;
-  }>;
-  compliance: Array<{
-    id: string;
-    user_id: string;
-    framework: string;
-    status: string;
-    score: number;
-    categories?: Array<{ name: string; status: string; score: number }>;
-    created_at?: string;
-  }>;
-  reports: Array<{
-    id: string;
-    user_id: string;
-    name: string;
-    type: string;
-    status: string;
-    frameworks?: string[];
-    date?: string;
-    created_at?: string;
-  }>;
-}
-
-interface UseDashboardDataResult {
-  data: DashboardData | null;
-  loading: boolean;
-  error: string | null;
-  refetch: () => void;
-}
-
-const EMPTY_DATA: DashboardData = {
-  profile: null,
-  emissions: [],
-  risks: [],
-  compliance: [],
-  reports: [],
+const fetcher = async (url: string, init?: RequestInit) => {
+  const res = await fetch(url, init);
+  if (!res.ok) throw new Error('Failed to fetch data');
+  return res.json();
 };
 
-export function useDashboardData(): UseDashboardDataResult {
-  const { user, getIdToken } = useAuth();
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useDashboardData(token: string | null) {
+  if (!token) return { data: null, error: null, isLoading: true };
 
-  const fetchData = useCallback(async () => {
-    if (!user) {
-      setData(EMPTY_DATA);
-      setLoading(false);
-      return;
-    }
+  const { data: emissions } = useSWR(`/api/dashboard/emissions`, () =>
+    fetcher(`/api/dashboard/emissions`, { headers: { Authorization: `Bearer ${token}` } })
+  );
+  const { data: reports } = useSWR(`/api/dashboard/reports`, () =>
+    fetcher(`/api/dashboard/reports`, { headers: { Authorization: `Bearer ${token}` } })
+  );
+  const { data: risks } = useSWR(`/api/dashboard/risks`, () =>
+    fetcher(`/api/dashboard/risks`, { headers: { Authorization: `Bearer ${token}` } })
+  );
 
-    try {
-      setLoading(true);
-      setError(null);
-
-      const token = await getIdToken();
-      if (!token) {
-        setData(EMPTY_DATA);
-        setLoading(false);
-        return;
-      }
-
-      const res = await fetch("/api/dashboard/data", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!res.ok) {
-        setData(EMPTY_DATA);
-        setLoading(false);
-        return;
-      }
-
-      const json = await res.json();
-      if (json.success && json.data) {
-        setData(json.data);
-      } else {
-        setData(EMPTY_DATA);
-      }
-    } catch (err) {
-      console.error("Dashboard data fetch error:", err);
-      setData(EMPTY_DATA);
-    } finally {
-      setLoading(false);
-    }
-  }, [user, getIdToken]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  return { data, loading, error, refetch: fetchData };
+  return {
+    emissions: emissions?.data || [],
+    reports: reports?.data || [],
+    risks: risks?.data || [],
+    isLoading: !emissions && !reports && !risks,
+  };
 }

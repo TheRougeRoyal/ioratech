@@ -5,6 +5,7 @@ import { getDocsByQuery, createDoc } from "@/lib/firestore";
 import { generateApiKey, hashApiKey, createApiKeyPreview, sanitizeInput } from "@/lib/api-key-utils";
 import { where } from "firebase/firestore";
 import crypto from "crypto";
+import { ApiKeyCreateSchema } from "@/lib/validators";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,18 +14,19 @@ export async function POST(request: NextRequest) {
       return createErrorResponseObj(ErrorCode.UNAUTHORIZED, "Unauthorized");
     }
 
-    let body: { name?: string; description?: string; expires_in_days?: number; scopes?: string[] };
+    let body: any;
     try {
       body = await request.json();
     } catch {
       return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "Invalid request body");
     }
 
-    const { name, description, expires_in_days, scopes } = body;
-
-    if (!name || name.trim().length === 0) {
-      return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "API key name is required");
+    const validation = ApiKeyCreateSchema.safeParse(body);
+    if (!validation.success) {
+      return createErrorResponseObj(ErrorCode.INVALID_REQUEST, validation.error.issues[0]?.message || "Invalid request");
     }
+
+    const { name, description, expires_in_days, scopes } = validation.data;
 
     const apiKey = generateApiKey();
     const keyHash = hashApiKey(apiKey);
@@ -32,7 +34,7 @@ export async function POST(request: NextRequest) {
     const id = crypto.randomUUID();
 
     let expiresAt: string | undefined;
-    if (expires_in_days && expires_in_days >= 1 && expires_in_days <= 365) {
+    if (expires_in_days) {
       const d = new Date();
       d.setDate(d.getDate() + expires_in_days);
       expiresAt = d.toISOString();
@@ -44,7 +46,7 @@ export async function POST(request: NextRequest) {
       description: description ? sanitizeInput(description) : null,
       key_hash: keyHash,
       key_preview: keyPreview,
-      scopes: scopes || ["read"],
+      scopes: scopes,
       is_active: true,
       expires_at: expiresAt || null,
       last_used_at: null,
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
         name: sanitizeInput(name),
         key: apiKey,
         key_preview: keyPreview,
-        scopes: scopes || ["read"],
+        scopes: scopes,
         expires_at: expiresAt || null,
       },
       "API key created successfully",

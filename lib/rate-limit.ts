@@ -1,22 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Redis } from "@upstash/redis";
+import { Ratelimit } from "@upstash/ratelimit";
 
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
+let redisClient: Redis | null = null;
+
+function getRedis(): Redis | null {
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!redisUrl || !redisToken) return null;
+  if (!redisClient) {
+    redisClient = new Redis({
+      url: redisUrl,
+      token: redisToken,
+    });
+  }
+  return redisClient;
 }
 
-const rateLimitStore = new Map<string, RateLimitEntry>();
+const limiters = new Map<string, Ratelimit>();
 
-const CLEANUP_INTERVAL = 60_000;
-let lastCleanup = Date.now();
+// ponytail: simple in-memory fallback for dev
+const fallbackStore = new Map<string, { count: number; reset: number }>();
 
-function cleanup() {
+async function fallbackLimit(key: string, max: number, windowMs: number) {
   const now = Date.now();
-  if (now - lastCleanup < CLEANUP_INTERVAL) return;
-  lastCleanup = now;
-  for (const [key, entry] of rateLimitStore) {
-    if (now > entry.resetTime) rateLimitStore.delete(key);
+  const entry = fallbackStore.get(key);
+
+  if (!entry || now > entry.reset) {
+    const reset = now + windowMs;
+    fallbackStore.set(key, { count: 1, reset });
+    return { success: true, remaining: max - 1, reset: reset / 1000 };
   }
+
+  if (entry.count >= max) {
+    return { success: false, remaining: 0, reset: entry.reset / 1000 };
+  }
+
+  entry.count++;
+  return { success: true, remaining: max - entry.count, reset: entry.reset / 1000 };
 }
 
 export interface RateLimitConfig {
@@ -25,41 +46,42 @@ export interface RateLimitConfig {
   keyPrefix?: string;
 }
 
-export function checkRateLimit(
+async function getLimiter(config: RateLimitConfig) {
+  const redis = getRedis();
+  if (!redis) return null;
+  const key = `${config.windowMs}:${config.maxRequests}`;
+  if (!limiters.has(key)) {
+    limiters.set(key, new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(config.maxRequests, `${config.windowMs / 1000} s` as any),
+      analytics: true,
+    }));
+  }
+  return limiters.get(key)!;
+}
+
+export async function checkRateLimit(
   identifier: string,
   config: RateLimitConfig
-): { allowed: boolean; remaining: number; resetTime: number } {
-  cleanup();
-
-  const now = Date.now();
+): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
   const key = `${config.keyPrefix || "rl"}:${identifier}`;
-  const entry = rateLimitStore.get(key);
+  const limiter = await getLimiter(config);
 
-  if (!entry || now > entry.resetTime) {
-    rateLimitStore.set(key, {
-      count: 1,
-      resetTime: now + config.windowMs,
-    });
+  if (!limiter) {
+    const { success, remaining, reset } = await fallbackLimit(key, config.maxRequests, config.windowMs);
     return {
-      allowed: true,
-      remaining: config.maxRequests - 1,
-      resetTime: now + config.windowMs,
+      allowed: success,
+      remaining,
+      resetTime: reset * 1000,
     };
   }
 
-  if (entry.count >= config.maxRequests) {
-    return {
-      allowed: false,
-      remaining: 0,
-      resetTime: entry.resetTime,
-    };
-  }
+  const { success, reset, remaining } = await limiter.limit(key);
 
-  entry.count++;
   return {
-    allowed: true,
-    remaining: config.maxRequests - entry.count,
-    resetTime: entry.resetTime,
+    allowed: success,
+    remaining,
+    resetTime: reset * 1000,
   };
 }
 
@@ -107,6 +129,18 @@ export const API_RATE_LIMIT: RateLimitConfig = {
   windowMs: 60_000,
   maxRequests: 60,
   keyPrefix: "api",
+};
+
+export const HEALTH_RATE_LIMIT: RateLimitConfig = {
+  windowMs: 60_000,
+  maxRequests: 10,
+  keyPrefix: "health",
+};
+
+export const KEY_MGMT_RATE_LIMIT: RateLimitConfig = {
+  windowMs: 3600_000,
+  maxRequests: 5,
+  keyPrefix: "key_mgmt",
 };
 
 export function getClientIp(request: NextRequest): string {

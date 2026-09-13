@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { getDocsByQuery, createDoc, updateDocById, deleteDocById } from "@/lib/firestore";
 import { createResponse, ErrorCode, createErrorResponseObj } from "@/lib/api-response";
 import { where } from "firebase/firestore";
+import { EmissionSchema } from "@/lib/validators";
 
 export const dynamic = "force-dynamic";
 
@@ -33,26 +34,22 @@ export async function POST(request: NextRequest) {
       return createErrorResponseObj(ErrorCode.UNAUTHORIZED, auth.error || "Unauthorized");
     }
 
-    let body: Record<string, unknown>;
+    let body: any;
     try {
       body = await request.json();
     } catch {
       return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "Invalid request body");
     }
 
-    const { scope, category, value, unit, period } = body;
-    if (!scope || !category || value === undefined) {
-      return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "scope, category, and value are required");
+    const validation = EmissionSchema.safeParse(body);
+    if (!validation.success) {
+      return createErrorResponseObj(ErrorCode.INVALID_REQUEST, validation.error.issues[0]?.message || "Invalid input");
     }
 
     const id = `emission_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const emissionData = {
       user_id: auth.userId,
-      scope,
-      category,
-      value,
-      unit: unit || "tCO2e",
-      period: period || new Date().toISOString().slice(0, 7),
+      ...validation.data,
     };
 
     await createDoc("user_emissions", id, emissionData);
@@ -71,21 +68,27 @@ export async function PUT(request: NextRequest) {
       return createErrorResponseObj(ErrorCode.UNAUTHORIZED, auth.error || "Unauthorized");
     }
 
-    let body: Record<string, unknown>;
+    let body: any;
     try {
       body = await request.json();
     } catch {
       return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "Invalid request body");
     }
 
-    const { id, ...updates } = body as { id?: string; [key: string]: unknown };
+    const { id, ...updates } = body;
     if (!id) {
       return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "id is required");
     }
 
-    await updateDocById("user_emissions", id, updates as Record<string, unknown>);
+    // Partial validation for updates
+    const validation = EmissionSchema.partial().safeParse(updates);
+    if (!validation.success) {
+      return createErrorResponseObj(ErrorCode.INVALID_REQUEST, validation.error.issues[0]?.message || "Invalid input");
+    }
 
-    return createResponse({ id, ...updates }, "Emission updated");
+    await updateDocById("user_emissions", id, validation.data as Record<string, unknown>);
+
+    return createResponse({ id, ...validation.data }, "Emission updated");
   } catch (error) {
     console.error("PUT /api/dashboard/emissions error:", error);
     return createErrorResponseObj(ErrorCode.INTERNAL_ERROR, "Failed to update emission");

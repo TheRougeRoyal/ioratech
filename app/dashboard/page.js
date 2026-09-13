@@ -1,5 +1,7 @@
 "use client";
 
+export const revalidate = 300;
+
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {

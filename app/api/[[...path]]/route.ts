@@ -1,14 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createDoc, getDocsByQuery } from "@/lib/firestore";
 import crypto from "crypto";
+import { requireAuth } from "@/lib/auth-middleware";
+import { createErrorResponseObj, ErrorCode } from "@/lib/api-response";
 
-function getAllowedOrigins() {
+function getAllowedOrigins(): string[] {
   const origins = process.env.CORS_ORIGINS;
   if (!origins) return ["*"];
   return origins.split(",").map((o) => o.trim()).filter(Boolean);
 }
 
-function resolveCorsOrigin(request) {
+function resolveCorsOrigin(request: NextRequest): string {
   const allowed = getAllowedOrigins();
   if (allowed.includes("*")) return "*";
   const origin = request.headers.get("origin");
@@ -16,7 +18,7 @@ function resolveCorsOrigin(request) {
   return allowed[0];
 }
 
-function handleCORS(response, request) {
+function handleCORS(response: NextResponse, request: NextRequest): NextResponse {
   response.headers.set("Access-Control-Allow-Origin", resolveCorsOrigin(request));
   response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -25,16 +27,23 @@ function handleCORS(response, request) {
   return response;
 }
 
-export async function OPTIONS(request) {
+export async function OPTIONS(request: NextRequest) {
   return handleCORS(new NextResponse(null, { status: 200 }), request);
 }
 
-async function handleRoute(request, { params }) {
+async function handleRoute(request: NextRequest, { params }: { params: { path?: string[] } }) {
   const { path = [] } = params;
   const route = `/${path.join("/")}`;
   const method = request.method;
 
   try {
+    if (route !== "/status") {
+      const auth = await requireAuth(request);
+      if (!auth.authenticated || !auth.userId) {
+        return handleCORS(createErrorResponseObj(ErrorCode.UNAUTHORIZED, auth.error || "Unauthorized"), request);
+      }
+    }
+
     if (route === "/" || route === "/root") {
       if (method === "GET") {
         return handleCORS(NextResponse.json({ message: "Hello World" }), request);
@@ -62,7 +71,7 @@ async function handleRoute(request, { params }) {
     }
 
     return handleCORS(NextResponse.json({ error: `Route ${route} not found` }, { status: 404 }), request);
-  } catch (error) {
+  } catch (error: any) {
     console.error("API Error:", error);
     return handleCORS(
       NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 }),

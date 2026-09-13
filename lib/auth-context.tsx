@@ -20,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   isDemo: false,
   getIdToken: async () => null,
   startDemo: () => {},
+  signOut: async () => {},
 });
 
 export function useAuth() {

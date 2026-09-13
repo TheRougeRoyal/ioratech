@@ -10,7 +10,7 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [email, setEmail] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email) {
@@ -21,9 +21,9 @@ export default function ForgotPasswordPage() {
     try {
       await resetPassword(email);
       setSuccess(true);
-    } catch (err) {
+    } catch (err: any) {
       const msg =
-        err.code === "auth/user-not-found"
+        err?.code === "auth/user-not-found"
           ? "No account found with this email"
           : "Failed to send reset email. Please try again.";
       setError(msg);
