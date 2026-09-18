@@ -1,14 +1,13 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 import { signIn, signInWithGoogle } from "@/lib/auth";
 
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = "/dashboard";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
@@ -142,15 +141,5 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-white dark:bg-neutral-950">
-          <div className="text-sm text-neutral-500">Loading login...</div>
-        </div>
-      }
-    >
-      <LoginForm />
-    </Suspense>
-  );
+  return <LoginForm />;
 }

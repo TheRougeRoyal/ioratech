@@ -5,6 +5,7 @@ import { detectAnomalousLogin, logLoginAttempt } from "@/lib/anomaly-detection";
 import { createAuditLog } from "@/lib/audit-logger";
 import { logger } from "@/lib/logger";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import app from "@/lib/firebase";
 import { getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Authentication
-    const auth = getAuth();
+    const auth = getAuth(app);
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
