@@ -33,6 +33,11 @@ function LoginForm() {
           ? "Incorrect password"
           : err?.code === "auth/invalid-credential"
           ? "Invalid email or password"
+          : err?.code === "auth/invalid-api-key" ||
+            err?.code === "auth/configuration-not-found"
+          ? "Authentication is not configured correctly. Please contact support."
+          : err?.code === "auth/unauthorized-domain"
+          ? "This domain is not authorized for sign-in. Please contact support."
           : "An error occurred. Please try again.";
       setError(msg);
     } finally {

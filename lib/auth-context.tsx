@@ -78,17 +78,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(buildDemoUser());
     }
 
-    const unsubscribe = onAuthChange((firebaseUser) => {
-      // If a real sign-in lands while a demo session is active, prefer the real user.
-      if (firebaseUser) {
+    const unsubscribe = onAuthChange(
+      (firebaseUser) => {
+        // If a real sign-in lands while a demo session is active, prefer the real user.
+        if (firebaseUser) {
+          setIsDemo(false);
+          sessionStorage.removeItem(DEMO_STORAGE_KEY);
+          setUser(firebaseUser);
+        } else if (storedMode !== "demo") {
+          setUser(null);
+        }
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Firebase auth state failed:", error);
         setIsDemo(false);
-        sessionStorage.removeItem(DEMO_STORAGE_KEY);
-        setUser(firebaseUser);
-      } else if (storedMode !== "demo") {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    );
     return () => unsubscribe();
   }, []);
 

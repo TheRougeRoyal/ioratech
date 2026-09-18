@@ -47,6 +47,9 @@ export function getCurrentUser(): FirebaseUser | null {
   return auth.currentUser;
 }
 
-export function onAuthChange(callback: (user: FirebaseUser | null) => void) {
-  return onAuthStateChanged(auth, callback);
+export function onAuthChange(
+  callback: (user: FirebaseUser | null) => void,
+  onError?: (error: Error) => void
+) {
+  return onAuthStateChanged(auth, callback, onError);
 }
