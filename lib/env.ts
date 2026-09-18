@@ -11,7 +11,10 @@ const envSchema = z.object({
   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: z.string().optional(),
 
   // API
-  NEXT_PUBLIC_API_URL: z.string().url().default('http://localhost:3000'),
+  NEXT_PUBLIC_API_URL: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().url().default('http://localhost:3000')
+  ),
 
   // JWT
   JWT_SECRET: z.string().min(32),
@@ -23,8 +26,14 @@ const envSchema = z.object({
   // Rate Limiting
   RATE_LIMIT_AUTH_PER_MINUTE: z.coerce.number().positive().default(5),
   RATE_LIMIT_API_PER_MINUTE: z.coerce.number().positive().default(60),
-  UPSTASH_REDIS_REST_URL: z.string().url(),
-  UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+  UPSTASH_REDIS_REST_URL: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().url().optional()
+  ),
+  UPSTASH_REDIS_REST_TOKEN: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().min(1).optional()
+  ),
 
   // CORS
   CORS_ORIGINS: z.string().optional(),

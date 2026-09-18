@@ -1,4 +1,4 @@
-const { withSentryConfig } = require("@sentry/nextjs");
+const { withSentryConfig } = require("@sentry/nextjs/config");
 
 const nextConfig = {
   transpilePackages: ['recharts', 'firebase'],

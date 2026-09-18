@@ -3,45 +3,52 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Play,
-  Lock,
+  AlertTriangle,
   ArrowRight,
   BarChart3,
+  FileCheck2,
+  Lock,
+  Play,
   ShieldCheck,
-  FileText,
-  AlertTriangle,
-  LucideIcon,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
-import { Header } from "@/components/layout/header";
+import { DashboardPreview } from "@/components/landing/dashboard-preview";
 import { Footer } from "@/components/layout/footer";
+import { Header } from "@/components/layout/header";
+import { useAuth } from "@/lib/auth-context";
 
-interface Feature {
-  icon: LucideIcon;
-  title: string;
-  body: string;
-}
+const WORKFLOW = [
+  {
+    number: "01",
+    title: "Bring your data together",
+    body: "Connect facility, utility, travel, and supplier data without losing the source behind each number.",
+  },
+  {
+    number: "02",
+    title: "See what needs attention",
+    body: "IORA highlights missing evidence, unusual changes, and the facilities most exposed to climate risk.",
+  },
+  {
+    number: "03",
+    title: "Share a report you can stand behind",
+    body: "Review the calculation trail, answer questions from stakeholders, and export a report when it is ready.",
+  },
+];
 
-const FEATURES: Feature[] = [
+const FEATURES = [
   {
     icon: BarChart3,
-    title: "Emissions tracking",
-    body: "Scope 1, 2, and 3 measurements based on GHG Protocol calculations.",
+    title: "A clear emissions picture",
+    body: "Track Scope 1, 2, and 3 in one place, with the assumptions and activity data still attached.",
   },
   {
     icon: AlertTriangle,
-    title: "Risk modeling",
-    body: "Identify physical and transition risks across your operational portfolio.",
+    title: "Fewer last-minute surprises",
+    body: "Find gaps and rising risks early, while there is still time to do something about them.",
   },
   {
-    icon: ShieldCheck,
-    title: "Compliance ready",
-    body: "Maintain a versioned ledger of evidence for CSRD and SEC reporting.",
-  },
-  {
-    icon: FileText,
-    title: "Direct reporting",
-    body: "Generate disclosure-ready PDFs from your operational data.",
+    icon: FileCheck2,
+    title: "Evidence that travels with the number",
+    body: "Keep invoices, factors, notes, and approvals together instead of hunting through shared drives.",
   },
 ];
 
@@ -55,56 +62,138 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
       <Header />
 
-      <main className="flex-grow">
-        {/* Hero */}
-        <section className="relative py-24 md:py-32 border-b border-border">
-          <div className="max-w-4xl mx-auto px-4 text-center space-y-8">
-            <h1 className="text-4xl sm:text-6xl font-bold tracking-tight leading-tight">
-              Defensible climate <span className="text-primary">accounting.</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              IORA provides the tools to measure emissions, model climate risks,
-              and generate reports without the spreadsheet complexity.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <button
-                onClick={enterDemo}
-                className="inline-flex items-center justify-center gap-2 h-12 px-6 font-semibold rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all group"
-              >
-                <Play className="h-4 w-4 fill-current" />
-                Try the demo
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </button>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center gap-2 h-12 px-6 font-semibold rounded-full border border-border bg-background hover:bg-muted transition-all"
-              >
+      <main>
+        <section className="border-b border-border bg-gradient-to-b from-muted/40 to-background">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-4 py-20 sm:px-6 md:py-28 lg:grid-cols-12 lg:px-8">
+            <div className="space-y-7 lg:col-span-6">
+              <div className="inline-flex items-center gap-2 text-sm font-medium text-primary">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                Climate reporting for teams doing the work
+              </div>
+              <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">
+                Stop rebuilding your climate report every quarter.
+              </h1>
+              <p className="max-w-xl text-lg leading-8 text-muted-foreground">
+                IORA brings emissions data, climate risk, and reporting evidence
+                into one calm workspace, so your team can spend less time
+                chasing spreadsheets and more time making decisions.
+              </p>
+              <div className="flex flex-col items-stretch gap-3 pt-2 sm:flex-row sm:items-center">
+                <button
+                  onClick={enterDemo}
+                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  <Play className="h-4 w-4 fill-current" />
+                  Explore the demo
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </button>
+                <Link
+                  href="/contact"
+                  className="inline-flex h-12 items-center justify-center rounded-md border border-border bg-background px-6 font-semibold transition-colors hover:bg-muted"
+                >
+                  Talk to our team
+                </Link>
+              </div>
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Lock className="h-4 w-4" />
-                Sign in
-              </Link>
+                No sales call required to look around.
+              </p>
+            </div>
+
+            <div className="relative lg:col-span-6">
+              <div className="absolute -inset-4 -z-10 rounded-3xl bg-primary/10 blur-2xl" />
+              <DashboardPreview />
+              <div className="absolute -bottom-5 -left-3 hidden max-w-[230px] rounded-lg border border-border bg-card p-4 shadow-lg sm:block">
+                <div className="mb-2 flex items-center gap-2 text-xs font-semibold">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  Evidence attached
+                </div>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Every reported number has a trail your finance and
+                  sustainability teams can review.
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Core Value */}
-        <section className="py-24">
-          <div className="max-w-5xl mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              {FEATURES.map((f) => (
-                <div key={f.title} className="flex gap-4">
-                  <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                    <f.icon className="h-5 w-5" />
-                  </div>
+        <section id="features" className="border-b border-border py-20 md:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-12 max-w-2xl">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-primary">
+                Made for the messy middle
+              </p>
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                The work behind a trustworthy report is rarely tidy.
+              </h2>
+              <p className="mt-4 text-lg leading-8 text-muted-foreground">
+                IORA gives the details a home without making the people doing
+                the work feel like they need a data science degree.
+              </p>
+            </div>
+            <div className="grid gap-10 md:grid-cols-3">
+              {FEATURES.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <article key={feature.title} className="border-t-2 border-primary pt-5">
+                    <Icon className="mb-5 h-5 w-5 text-primary" />
+                    <h3 className="text-xl font-semibold">{feature.title}</h3>
+                    <p className="mt-3 leading-7 text-muted-foreground">{feature.body}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section id="how" className="bg-muted/30 py-20 md:py-28">
+          <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+            <div className="lg:col-span-4">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-primary">
+                A simpler rhythm
+              </p>
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                From scattered inputs to a report your team trusts.
+              </h2>
+              <p className="mt-4 leading-7 text-muted-foreground">
+                Start with the information you already have. Improve it as you
+                go. Keep the context when the report leaves your team.
+              </p>
+            </div>
+            <div className="space-y-0 lg:col-span-7 lg:col-start-6">
+              {WORKFLOW.map((step) => (
+                <div key={step.number} className="flex gap-5 border-t border-border py-6">
+                  <span className="font-mono text-sm text-primary">{step.number}</span>
                   <div>
-                    <h3 className="text-lg font-bold mb-1">{f.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{f.body}</p>
+                    <h3 className="text-lg font-semibold">{step.title}</h3>
+                    <p className="mt-2 leading-7 text-muted-foreground">{step.body}</p>
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="border-t border-border py-20">
+          <div className="mx-auto flex max-w-4xl flex-col items-start justify-between gap-8 px-4 sm:px-6 md:flex-row md:items-center lg:px-8">
+            <div>
+              <h2 className="text-3xl font-semibold tracking-tight">
+                Make the next reporting cycle less painful.
+              </h2>
+              <p className="mt-3 text-muted-foreground">
+                Take a look around, or tell us what your current process looks like.
+              </p>
+            </div>
+            <Link
+              href="/contact"
+              className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Start a conversation
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </section>
       </main>

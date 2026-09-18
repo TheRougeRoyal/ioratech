@@ -2,12 +2,17 @@ import { Redis } from '@upstash/redis';
 import { env } from './env';
 import { logger } from './logger';
 
-const redis = new Redis({
-  url: env.UPSTASH_REDIS_REST_URL,
-  token: env.UPSTASH_REDIS_REST_TOKEN,
-});
+const redis =
+  env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+    ? new Redis({
+        url: env.UPSTASH_REDIS_REST_URL,
+        token: env.UPSTASH_REDIS_REST_TOKEN,
+      })
+    : null;
 
 export async function detectAnomalousLogin(userId: string, ipAddress: string) {
+  if (!redis) return { suspicious: false };
+
   try {
     const lastLogins = await redis.lrange(`login_history:${userId}`, 0, 10);
     if (!lastLogins || lastLogins.length === 0) return { suspicious: false };
@@ -39,6 +44,8 @@ export async function logLoginAttempt(
   success: boolean,
   location?: string
 ) {
+  if (!redis) return;
+
   try {
     if (!success) {
       await redis.incr(`failed_logins:${ipAddress}:${userId}`);

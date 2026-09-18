@@ -48,6 +48,18 @@ export interface RateLimitConfig {
   keyPrefix?: string;
 }
 
+export const AUTH_RATE_LIMIT: RateLimitConfig = {
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 10,
+  keyPrefix: "auth",
+};
+
+export const API_RATE_LIMIT: RateLimitConfig = {
+  windowMs: 60 * 1000,
+  maxRequests: 100,
+  keyPrefix: "api",
+};
+
 async function getLimiter(config: RateLimitConfig) {
   const redis = getRedis();
   if (!redis) return null;

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const password = body.password;
 
     if (!email || !password) {
-      return createErrorResponseObj(ErrorCode.BAD_REQUEST, "Email and password are required");
+      return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "Email and password are required");
     }
 
     // 1. Anomaly Detection
