@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 import { Ratelimit } from "@upstash/ratelimit";
+import { env } from "./env";
+
 
 let redisClient: Redis | null = null;
 
 function getRedis(): Redis | null {
-  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const redisUrl = env.UPSTASH_REDIS_REST_URL;
+  const redisToken = env.UPSTASH_REDIS_REST_TOKEN;
   if (!redisUrl || !redisToken) return null;
   if (!redisClient) {
     redisClient = new Redis({
@@ -119,29 +121,48 @@ export function applyRateLimitHeaders(
   return response;
 }
 
-export const AUTH_RATE_LIMIT: RateLimitConfig = {
-  windowMs: 60_000,
-  maxRequests: 5,
-  keyPrefix: "auth",
+export const RATE_LIMITS = {
+  auth: { points: 5, duration: 60 },
+  login: { points: 10, duration: 300 },
+  api: { points: 100, duration: 60 },
+  upload: { points: 10, duration: 3600 },
+  free_tier: { points: 100, duration: 86400 },
+  pro_tier: { points: 10000, duration: 86400 },
 };
 
-export const API_RATE_LIMIT: RateLimitConfig = {
-  windowMs: 60_000,
-  maxRequests: 60,
-  keyPrefix: "api",
-};
+export async function checkRateLimitByEndpoint(
+  identifier: string,
+  endpoint: string,
+  tier: 'free' | 'pro' = 'free'
+): Promise<{ success: boolean; remaining: number; total: number; resetAt: Date }> {
+  const limit = RATE_LIMITS[endpoint as keyof typeof RATE_LIMITS] || RATE_LIMITS.api;
+  const keyPrefix = tier === 'pro' ? 'pro_' : 'free_';
 
-export const HEALTH_RATE_LIMIT: RateLimitConfig = {
-  windowMs: 60_000,
-  maxRequests: 10,
-  keyPrefix: "health",
-};
+  const config: RateLimitConfig = {
+    windowMs: limit.duration * 1000,
+    maxRequests: limit.points,
+    keyPrefix: `${keyPrefix}${endpoint}`,
+  };
 
-export const KEY_MGMT_RATE_LIMIT: RateLimitConfig = {
-  windowMs: 3600_000,
-  maxRequests: 5,
-  keyPrefix: "key_mgmt",
-};
+  const { allowed, remaining, resetTime } = await checkRateLimit(identifier, config);
+
+  return {
+    success: allowed,
+    remaining,
+    total: limit.points,
+    resetAt: new Date(resetTime),
+  };
+}
+
+export function rateLimitHeaders(result: Awaited<ReturnType<typeof checkRateLimitByEndpoint>>) {
+  return {
+    'X-RateLimit-Limit': String(result.total),
+    'X-RateLimit-Remaining': String(result.remaining),
+    'X-RateLimit-Reset': String(result.resetAt.getTime()),
+    'Retry-After': String(Math.ceil((result.resetAt.getTime() - Date.now()) / 1000)),
+  };
+}
+
 
 export function getClientIp(request: NextRequest): string {
   return (

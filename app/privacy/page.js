@@ -16,10 +16,10 @@ export default function PrivacyPage() {
             <div>
               <h2 className="text-xl font-semibold mb-3">1. Introduction</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Iora Technologies, Inc. ("Iora," "we," "us," or "our") is committed to
+                Iora Technologies, Inc. (&ldquo;Iora,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) is committed to
                 protecting your privacy. This Privacy Policy explains how we collect,
                 use, disclose, and safeguard your information when you use our Climate
-                Intelligence platform and related services (collectively, the "Service").
+                Intelligence platform and related services (collectively, the &ldquo;Service&rdquo;).
               </p>
               <p className="text-sm text-muted-foreground leading-relaxed mt-3">
                 By using the Service, you agree to the collection and use of information
@@ -205,7 +205,7 @@ export default function PrivacyPage() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold mb-3">10. Children's Privacy</h2>
+              <h2 className="text-xl font-semibold mb-3">10. Children&apos;s Privacy</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 The Service is not directed to individuals under 16. We do not knowingly
                 collect personal data from children. If we become aware that we have
@@ -218,7 +218,7 @@ export default function PrivacyPage() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 We may update this Privacy Policy from time to time. We will notify
                 you of material changes by posting the updated policy on this page
-                and updating the "Last updated" date. Your continued use of the Service
+                and updating the &ldquo;Last updated&rdquo; date. Your continued use of the Service
                 after changes constitutes acceptance of the updated policy.
               </p>
             </div>

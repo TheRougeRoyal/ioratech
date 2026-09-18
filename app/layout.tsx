@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Providers } from "@/lib/providers";
 import { AuthProvider } from "@/lib/auth-context";
+import { MonitoringProvider } from "@/components/monitoring-provider";
 import type { Metadata } from "next";
 import React, { ReactNode } from "react";
 
@@ -15,7 +16,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="antialiased">
         <Providers>
           <AuthProvider>
-            {children}
+            <MonitoringProvider>
+              {children}
+            </MonitoringProvider>
           </AuthProvider>
         </Providers>
       </body>

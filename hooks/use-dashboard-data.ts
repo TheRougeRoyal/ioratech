@@ -7,17 +7,27 @@ const fetcher = async (url: string, init?: RequestInit) => {
 };
 
 export function useDashboardData(token: string | null) {
-  if (!token) return { data: null, error: null, isLoading: true };
+  // Hooks must be called unconditionally — early return moved after all hook calls.
+  const { data: emissions } = useSWR(
+    token ? `/api/dashboard/emissions` : null,
+    token
+      ? () => fetcher(`/api/dashboard/emissions`, { headers: { Authorization: `Bearer ${token}` } })
+      : null
+  );
+  const { data: reports } = useSWR(
+    token ? `/api/dashboard/reports` : null,
+    token
+      ? () => fetcher(`/api/dashboard/reports`, { headers: { Authorization: `Bearer ${token}` } })
+      : null
+  );
+  const { data: risks } = useSWR(
+    token ? `/api/dashboard/risks` : null,
+    token
+      ? () => fetcher(`/api/dashboard/risks`, { headers: { Authorization: `Bearer ${token}` } })
+      : null
+  );
 
-  const { data: emissions } = useSWR(`/api/dashboard/emissions`, () =>
-    fetcher(`/api/dashboard/emissions`, { headers: { Authorization: `Bearer ${token}` } })
-  );
-  const { data: reports } = useSWR(`/api/dashboard/reports`, () =>
-    fetcher(`/api/dashboard/reports`, { headers: { Authorization: `Bearer ${token}` } })
-  );
-  const { data: risks } = useSWR(`/api/dashboard/risks`, () =>
-    fetcher(`/api/dashboard/risks`, { headers: { Authorization: `Bearer ${token}` } })
-  );
+  if (!token) return { data: null, error: null, isLoading: true };
 
   return {
     emissions: emissions?.data || [],

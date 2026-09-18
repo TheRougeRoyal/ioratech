@@ -9,8 +9,8 @@ export default function DpaPage() {
         <div className="container mx-auto px-4 max-w-3xl">
           <h1 className="text-4xl font-semibold tracking-tight mb-6">Data Processing Agreement</h1>
           <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-            This Data Processing Agreement ("DPA") forms part of the agreement between
-            Iora Technologies, Inc. ("Processor") and the customer ("Controller") for
+            This Data Processing Agreement (&ldquo;DPA&rdquo;) forms part of the agreement between
+            Iora Technologies, Inc. (&ldquo;Processor&rdquo;) and the customer (&ldquo;Controller&rdquo;) for
             the use of the Iora Climate Intelligence platform.
           </p>
 
@@ -21,7 +21,7 @@ export default function DpaPage() {
                 This DPA applies to the processing of personal data by Iora Technologies
                 on behalf of the Controller in connection with the services provided through
                 the Iora Climate Intelligence platform. The Processor shall process personal
-                data only in accordance with the Controller's documented instructions.
+                data only in accordance with the Controller&apos;s documented instructions.
               </p>
             </div>
 
@@ -97,7 +97,7 @@ export default function DpaPage() {
             <div>
               <h2 className="text-xl font-semibold mb-3">8. Data Retention and Deletion</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Upon termination of services, the Processor shall, at the Controller's choice,
+                Upon termination of services, the Processor shall, at the Controller&apos;s choice,
                 delete or return all personal data, and delete existing copies unless
                 retention is required by applicable law.
               </p>
