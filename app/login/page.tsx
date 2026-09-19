@@ -22,7 +22,17 @@ function LoginForm() {
     }
     setLoading(true);
     try {
-      await signIn(email, password);
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw { code: data.code, message: data.message };
+      }
+
       router.push(callbackUrl);
     } catch (err: any) {
       const msg =
