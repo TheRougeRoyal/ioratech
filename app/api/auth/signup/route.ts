@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
       return createErrorResponseObj(ErrorCode.INVALID_REQUEST, "uid is required");
     }
 
-    const validation = SignUpSchema.safeParse(input);
+    // Firebase handles password creation; this endpoint only persists the profile.
+    const validation = SignUpSchema.omit({ password: true }).safeParse(input);
     if (!validation.success) {
       return createErrorResponseObj(ErrorCode.INVALID_REQUEST, validation.error.issues[0]?.message || "Invalid input");
     }

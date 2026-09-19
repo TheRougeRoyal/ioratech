@@ -32,11 +32,14 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const user = await signUp(email, password, name);
-      await fetch("/api/auth/signup", {
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uid: user.uid, email: user.email, name: name || undefined }),
       });
+      if (!response.ok) {
+        throw new Error("Failed to create your user profile");
+      }
       router.push("/dashboard");
     } catch (err: any) {
       const msg =
@@ -56,11 +59,14 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const user = await signInWithGoogle();
-      await fetch("/api/auth/signup", {
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uid: user.uid, email: user.email, name: user.displayName || undefined }),
       });
+      if (!response.ok) {
+        throw new Error("Failed to create your user profile");
+      }
       router.push("/dashboard");
     } catch (err: any) {
       if (err?.code !== "auth/popup-closed-by-user") {
