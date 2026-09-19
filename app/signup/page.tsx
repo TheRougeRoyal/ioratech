@@ -158,6 +158,7 @@ export default function SignupPage() {
         </div>
 
         <button
+          type="button"
           onClick={handleGoogle}
           disabled={loading}
           className="w-full h-9 border border-neutral-300 dark:border-neutral-700 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-900 disabled:opacity-50"
