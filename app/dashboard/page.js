@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  AreaChart, Area, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, RadialBarChart, RadialBar,
+  AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, RadialBarChart, RadialBar,
 } from "recharts";
 import {
   ArrowRight, TrendingDown, Leaf, FileText, Shield, AlertTriangle,
@@ -14,8 +14,6 @@ import { useAuth } from "@/lib/auth-context";
 
 const COLORS = ["#10b981", "#f59e0b", "#ef4444", "#3b82f6"];
 const SCOPE_COLORS = ["#ef4444", "#f59e0b", "#3b82f6"];
-
-// ponytail: aggregate-by-period on the client; 12-month window covers the seeded mock and most real accounts. Move to API aggregation when emissions exceed ~500 rows.
 const MONTHS = ["Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
 const PERIOD_KEYS = ["2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08"];
 
@@ -62,12 +60,6 @@ function greeting() {
   return "Good evening";
 }
 
-function statusClasses(s) {
-  if (s === "published") return "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800";
-  if (s === "in-review") return "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800";
-  return "text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800";
-}
-
 function Sparkline({ data, color = "#10b981" }) {
   return (
     <ResponsiveContainer width="100%" height={36}>
@@ -89,30 +81,11 @@ function Skeleton() {
 }
 
 export default function DashboardPage() {
-  const { user, getIdToken } = useAuth();
-  const [emissions, setEmissions] = useState(MOCK_EMISSIONS);
-  const [reports, setReports] = useState(MOCK_REPORTS);
-  const [risks, setRisks] = useState(MOCK_RISKS);
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    if (!user) return;
-    try {
-      setLoading(true);
-      const token = await getIdToken();
-      if (!token) return;
-      const [e, r, k] = await Promise.all([
-        fetch("/api/dashboard/emissions", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/dashboard/reports", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/dashboard/risks", { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
-      if (e.ok) { const j = await e.json(); if (j.success && j.data?.length) setEmissions(j.data); }
-      if (r.ok) { const j = await r.json(); if (j.success && j.data?.length) setReports(j.data); }
-      if (k.ok) { const j = await k.json(); if (j.success && j.data?.length) setRisks(j.data); }
-    } catch (e) { console.error(e); } finally { setLoading(false); }
-  }, [user, getIdToken]);
-
-  useEffect(() => { load(); }, [load]);
+  const { user, isDemo } = useAuth();
+  const [emissions] = useState(MOCK_EMISSIONS);
+  const [reports] = useState(MOCK_REPORTS);
+  const [risks] = useState(MOCK_RISKS);
+  const [loading] = useState(false);
 
   const sum = (arr) => arr.reduce((s, e) => s + (Number(e.value) || 0), 0);
   const totalEmissions = sum(emissions);
@@ -126,14 +99,10 @@ export default function DashboardPage() {
   const complianceScore = Math.max(40, 100 - Math.round(risks.reduce((s, r) => s + r.score, 0) / Math.max(risks.length, 1) * 0.7));
   const activeAlerts = risks.filter((r) => r.trend === "increasing" && r.score >= 60).length;
 
-  // Build 12-month trend from emissions
-  const trend = PERIOD_KEYS.map((k, i) => {
-    const monthEm = emissions.filter((e) => e.period === k);
-    return {
-      m: MONTHS[i],
-      v: Math.round(monthEm.reduce((s, e) => s + (Number(e.value) || 0), 0)),
-    };
-  });
+  const trend = PERIOD_KEYS.map((k, i) => ({
+    m: MONTHS[i],
+    v: Math.round(emissions.filter((e) => e.period === k).reduce((s, e) => s + (Number(e.value) || 0), 0)),
+  }));
 
   const scopeData = [
     { name: "Scope 1", value: Math.round(sum(emissions.filter((e) => e.scope === "Scope 1"))) },
@@ -142,10 +111,9 @@ export default function DashboardPage() {
   ];
 
   const riskByType = [
-    { name: "Physical", score: Math.round(avg(risks.filter((r) => r.risk_type === "Physical").map((r) => r.score))) },
-    { name: "Transition", score: Math.round(avg(risks.filter((r) => r.risk_type === "Transition").map((r) => r.score))) },
+    { name: "Physical", score: Math.round(risks.filter((r) => r.risk_type === "Physical").reduce((s, r) => s + r.score, 0) / Math.max(risks.filter((r) => r.risk_type === "Physical").length, 1)) },
+    { name: "Transition", score: Math.round(risks.filter((r) => r.risk_type === "Transition").reduce((s, r) => s + r.score, 0) / Math.max(risks.filter((r) => r.risk_type === "Transition").length, 1)) },
   ];
-  function avg(a) { return a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0; }
 
   const gaugeData = [{ name: "score", value: complianceScore, fill: complianceScore >= 80 ? "#10b981" : complianceScore >= 60 ? "#f59e0b" : "#ef4444" }];
 
@@ -176,7 +144,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
       <div className="relative overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-gradient-to-br from-neutral-50 via-white to-emerald-50/60 dark:from-neutral-900 dark:via-neutral-950 dark:to-emerald-950/30">
         <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-emerald-200/30 dark:bg-emerald-900/20 blur-3xl" />
         <div className="absolute -right-32 bottom-0 h-40 w-40 rounded-full bg-blue-200/30 dark:bg-blue-900/20 blur-3xl" />
@@ -201,7 +168,6 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* KPI strip inside hero */}
           <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-px bg-neutral-200/60 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-800">
             <div className="bg-white/80 dark:bg-neutral-950/80 backdrop-blur p-4">
               <div className="flex items-center justify-between">
@@ -241,12 +207,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Main grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Trend chart — 2 cols */}
         <div className="xl:col-span-2 border border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-            <div>
+            <div className="space-y-0">
               <h2 className="text-sm font-medium">Emissions trend</h2>
               <p className="text-xs text-neutral-500">Trailing 12 months · tCO2e</p>
             </div>
@@ -273,10 +237,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Compliance gauge */}
         <div className="border border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-            <div>
+            <div className="space-y-0">
               <h2 className="text-sm font-medium">Compliance score</h2>
               <p className="text-xs text-neutral-500">Risk-weighted</p>
             </div>
@@ -314,12 +277,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Second row */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Scope breakdown */}
         <div className="border border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-            <div>
+            <div className="space-y-0">
               <h2 className="text-sm font-medium">By scope</h2>
               <p className="text-xs text-neutral-500">GHG Protocol</p>
             </div>
@@ -355,10 +316,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick actions */}
         <div className="border border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-            <div>
+            <div className="space-y-0">
               <h2 className="text-sm font-medium">Quick actions</h2>
               <p className="text-xs text-neutral-500">Jump into a workflow</p>
             </div>
@@ -386,10 +346,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Recent activity */}
         <div className="border border-neutral-200 dark:border-neutral-800">
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-            <div>
+            <div className="space-y-0">
               <h2 className="text-sm font-medium">Recent activity</h2>
               <p className="text-xs text-neutral-500">Latest across your account</p>
             </div>
@@ -416,7 +375,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Third row: scope strip with sparklines */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-neutral-200 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-800">
         {[
           { name: "Scope 1", icon: Flame, color: "#ef4444", sub: "Direct emissions" },
@@ -446,10 +404,9 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Health checklist */}
       <div className="border border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-          <div>
+          <div className="space-y-0">
             <h2 className="text-sm font-medium">Setup checklist</h2>
             <p className="text-xs text-neutral-500">Get to a complete climate program</p>
           </div>

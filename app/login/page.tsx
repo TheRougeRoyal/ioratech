@@ -22,16 +22,14 @@ function LoginForm() {
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
+      await signIn(email, password);
+
+      // Audit logging to the server (async)
+      fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw { code: data.code, message: data.message };
-      }
+      }).catch(console.error);
 
       router.push(callbackUrl);
     } catch (err: any) {
