@@ -1,5 +1,7 @@
 const { withSentryConfig } = require("@sentry/nextjs/config");
 
+const isDevelopment = process.env.NODE_ENV !== "production";
+
 const nextConfig = {
   transpilePackages: ['recharts', 'firebase'],
   images: {
@@ -24,11 +26,16 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://sentry.io",
+              [
+                "script-src 'self' 'wasm-unsafe-eval'",
+                isDevelopment ? "'unsafe-inline' 'unsafe-eval'" : "",
+                "https://apis.google.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://sentry.io",
+              ].filter(Boolean).join(" "),
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https:",
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://*.firebase.com https://*.googleapis.com https://sentry.io https://*.upstash.io",
+              "connect-src 'self' https://*.firebase.com https://*.firebaseapp.com https://*.googleapis.com https://accounts.google.com https://sentry.io https://*.upstash.io",
+              "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://www.google.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

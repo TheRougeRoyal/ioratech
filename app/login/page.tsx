@@ -37,6 +37,8 @@ function LoginForm() {
           ? "Authentication is not configured correctly. Please contact support."
           : err?.code === "auth/unauthorized-domain"
           ? "This domain is not authorized for sign-in. Please contact support."
+          : err?.code === "auth/network-request-failed"
+          ? "Unable to reach the authentication service. Check your connection and try again."
           : "An error occurred. Please try again.";
       setError(msg);
     } finally {
@@ -51,9 +53,19 @@ function LoginForm() {
       await signInWithGoogle();
       router.push(callbackUrl);
     } catch (err: any) {
-      if (err?.code !== "auth/popup-closed-by-user") {
-        setError("Google sign-in failed. Please try again.");
-      }
+      const msg =
+        err?.code === "auth/popup-blocked"
+          ? "Your browser blocked the Google sign-in popup. Allow popups and try again."
+          : err?.code === "auth/operation-not-allowed"
+          ? "Google sign-in is not enabled yet. Please use email and password."
+          : err?.code === "auth/unauthorized-domain"
+          ? "This domain is not authorized for Google sign-in. Please contact support."
+          : err?.code === "auth/network-request-failed"
+          ? "Unable to reach Google sign-in. Check your connection and try again."
+          : err?.code === "auth/popup-closed-by-user"
+          ? ""
+          : "Google sign-in failed. Please try again.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
