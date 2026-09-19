@@ -87,7 +87,7 @@ export default function HomePage() {
                   className="group inline-flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                   <Play className="h-4 w-4 fill-current" />
-                  Explore the demo
+                  Explore the demo now
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </button>
                 <Link
