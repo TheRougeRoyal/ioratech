@@ -99,7 +99,7 @@ export default function CarbonMetricsPage() {
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     if (!confirm("Delete this emission record?")) return;
     if (isDemo) {
       setEmissions(emissions.filter(e => e.id !== id));
