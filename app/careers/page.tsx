@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Briefcase, Globe, Heart, Users, Zap, Star } from "lucide-react";
+import { Briefcase, Globe, Heart, Users, Zap, Star, ArrowRight } from "lucide-react";
 
 export default function CareersPage() {
   return (
