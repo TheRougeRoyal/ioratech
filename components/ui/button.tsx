@@ -22,7 +22,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       sm: "h-8 px-3 text-xs [&_svg]:size-3.5",
       lg: "h-11 px-6 text-base [&_svg]:size-5",
     }
-    return <Comp ref={ref} type={type} className={cn(base, variants[variant], sizes[size], className)} {...props} />
+    // Only pass type prop to actual button elements, not to Slot
+    const buttonProps = asChild ? {} : { type };
+    return <Comp ref={ref} {...buttonProps} className={cn(base, variants[variant], sizes[size], className)} {...props} />;
   }
 )
 Button.displayName = "Button"
