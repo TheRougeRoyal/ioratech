@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -11,6 +11,8 @@ import {
   Activity, Cloud, Flame, Factory, Sparkles, Plus, CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const COLORS = ["#10b981", "#f59e0b", "#ef4444", "#3b82f6"];
 const SCOPE_COLORS = ["#ef4444", "#f59e0b", "#3b82f6"];
@@ -160,12 +162,13 @@ export default function DashboardPage() {
                 Your climate program at a glance — {emissions.length} emissions, {reports.length} reports, {risks.length} risks tracked across your organization.
               </p>
             </div>
-            <Link
-              href="/dashboard/carbon-metrics"
-              className="inline-flex items-center gap-1.5 h-9 px-4 bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200"
+            <Button
+              type="button"
+              onClick={() => {}}
+              className="inline-flex items-center gap-1.5 h-9 px-4"
             >
               <Plus className="h-4 w-4" />Record emission
-            </Link>
+            </Button>
           </div>
 
           <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-px bg-neutral-200/60 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-800">
@@ -208,7 +211,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 border border-neutral-200 dark:border-neutral-800">
+        <div className="border border-neutral-200 dark:border-neutral-800 bg-card">
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
             <div className="space-y-0">
               <h2 className="text-sm font-medium">Emissions trend</h2>
@@ -237,7 +240,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="border border-neutral-200 dark:border-neutral-800">
+        <div className="border border-neutral-200 dark:border-neutral-800 bg-card">
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
             <div className="space-y-0">
               <h2 className="text-sm font-medium">Compliance score</h2>
@@ -275,15 +278,14 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="border border-neutral-200 dark:border-neutral-800">
+        <div className="border border-neutral-200 dark:border-neutral-800 bg-card">
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
             <div className="space-y-0">
               <h2 className="text-sm font-medium">By scope</h2>
               <p className="text-xs text-neutral-500">GHG Protocol</p>
             </div>
+            <Sparkles className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="p-4">
             {loading ? <Skeleton /> : (
@@ -312,64 +314,6 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </>
-            )}
-          </div>
-        </div>
-
-        <div className="border border-neutral-200 dark:border-neutral-800">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-            <div className="space-y-0">
-              <h2 className="text-sm font-medium">Quick actions</h2>
-              <p className="text-xs text-neutral-500">Jump into a workflow</p>
-            </div>
-            <Sparkles className="h-4 w-4 text-emerald-600" />
-          </div>
-          <div className="p-2">
-            {[
-              { href: "/dashboard/carbon-metrics", icon: Leaf, title: "Record emissions", desc: "Log a measurement across any scope" },
-              { href: "/dashboard/reports", icon: FileText, title: "Generate report", desc: "TCFD, GRI, SASB, CSRD & more" },
-              { href: "/dashboard/risk-analysis", icon: AlertTriangle, title: "Assess risks", desc: "Score physical & transition risks" },
-              { href: "/dashboard/scenario-simulator", icon: Activity, title: "Run scenario", desc: "Model 1.5°C & net-zero pathways" },
-              { href: "/dashboard/api-keys", icon: Shield, title: "API access", desc: "Wire emissions data into your stack" },
-            ].map((a) => (
-              <Link key={a.href} href={a.href} className="flex items-center gap-3 p-3 hover:bg-neutral-50 dark:hover:bg-neutral-900 group">
-                <div className="h-8 w-8 flex items-center justify-center bg-neutral-100 dark:bg-neutral-900 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30">
-                  <a.icon className="h-4 w-4 text-neutral-600 dark:text-neutral-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{a.title}</p>
-                  <p className="text-xs text-neutral-500 truncate">{a.desc}</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-neutral-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="border border-neutral-200 dark:border-neutral-800">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-            <div className="space-y-0">
-              <h2 className="text-sm font-medium">Recent activity</h2>
-              <p className="text-xs text-neutral-500">Latest across your account</p>
-            </div>
-          </div>
-          <div className="p-2">
-            {loading ? (
-              <div className="p-3 space-y-2"><Skeleton /><div className="h-2 w-20 bg-neutral-200 dark:bg-neutral-800 animate-pulse" /></div>
-            ) : recentActivity.length === 0 ? (
-              <div className="p-6 text-center text-xs text-neutral-500">No activity yet</div>
-            ) : (
-              recentActivity.map((a, i) => (
-                <div key={i} className="flex items-start gap-3 p-3">
-                  <div className={`h-7 w-7 flex items-center justify-center border ${colorMap[a.color]}`}>
-                    <a.icon className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{a.text}</p>
-                    <p className="text-[11px] text-neutral-500 truncate">{a.sub}</p>
-                  </div>
-                </div>
-              ))
             )}
           </div>
         </div>

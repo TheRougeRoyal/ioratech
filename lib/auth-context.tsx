@@ -8,6 +8,7 @@ import { useRouter, usePathname } from "next/navigation";
 interface AuthContextType {
   user: FirebaseUser | null;
   loading: boolean;
+  error: string | null;
   isDemo: boolean;
   getIdToken: () => Promise<string | null>;
   startDemo: () => void;
@@ -17,6 +18,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  error: null,
   isDemo: false,
   getIdToken: async () => null,
   startDemo: () => {},

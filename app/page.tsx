@@ -15,6 +15,7 @@ import { DashboardPreview } from "@/components/landing/dashboard-preview";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
 
 const WORKFLOW = [
   {
@@ -82,21 +83,24 @@ export default function HomePage() {
                 chasing spreadsheets and more time making decisions.
               </p>
               <div className="flex flex-col items-stretch gap-3 pt-2 sm:flex-row sm:items-center">
-                <button
+                <Button
                   type="button"
                   onClick={enterDemo}
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                  size="lg"
+                  className="group gap-2"
                 >
                   <Play className="h-4 w-4 fill-current" />
                   Explore the demo now
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </button>
-                <Link
-                  href="/contact"
-                  className="inline-flex h-12 items-center justify-center rounded-md border border-border bg-background px-6 font-semibold transition-colors hover:bg-muted"
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  asChild
                 >
-                  Talk to our team
-                </Link>
+                  <Link href="/contact">Talk to our team</Link>
+                </Button>
               </div>
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Lock className="h-4 w-4" />
@@ -170,7 +174,7 @@ export default function HomePage() {
                   <span className="font-mono text-sm text-primary">{step.number}</span>
                   <div>
                     <h3 className="text-lg font-semibold">{step.title}</h3>
-                    <p className="mt-2 leading-7 text-muted-foreground">{step.body}</p>
+                  <p className="mt-2 leading-7 text-muted-foreground">{step.body}</p>
                   </div>
                 </div>
               ))}
@@ -188,13 +192,14 @@ export default function HomePage() {
                 Take a look around, or tell us what your current process looks like.
               </p>
             </div>
-            <Link
-              href="/contact"
-              className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            <Button
+              type="button"
+              size="lg"
+              className="gap-2"
             >
               Start a conversation
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </Button>
           </div>
         </section>
       </main>

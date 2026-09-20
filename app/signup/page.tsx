@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signUp, signInWithGoogle } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -40,6 +43,7 @@ export default function SignupPage() {
       if (!response.ok) {
         throw new Error("Failed to create your user profile");
       }
+      toast.success("Account created successfully!");
       router.push("/dashboard");
     } catch (err: any) {
       const msg =
@@ -49,6 +53,7 @@ export default function SignupPage() {
           ? "Password is too weak"
           : "An error occurred. Please try again.";
       setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -67,10 +72,13 @@ export default function SignupPage() {
       if (!response.ok) {
         throw new Error("Failed to create your user profile");
       }
+      toast.success("Account created with Google!");
       router.push("/dashboard");
     } catch (err: any) {
       if (err?.code !== "auth/popup-closed-by-user") {
-        setError("Google sign-up failed. Please try again.");
+        const msg = "Google sign-up failed. Please try again.";
+        setError(msg);
+        toast.error(msg);
       }
     } finally {
       setLoading(false);
@@ -91,64 +99,60 @@ export default function SignupPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
-            <input
+          <div className="space-y-1">
+            <label htmlFor="name" className="block text-sm font-medium">Name</label>
+            <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
-              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
               disabled={loading}
             />
           </div>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
-            <input
+          <div className="space-y-1">
+            <label htmlFor="email" className="block text-sm font-medium">Email</label>
+            <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="name@company.com"
-              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
               disabled={loading}
             />
           </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
-            <input
+          <div className="space-y-1">
+            <label htmlFor="password" className="block text-sm font-medium">Password</label>
+            <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="At least 8 characters"
-              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
               disabled={loading}
             />
           </div>
-          <div>
-            <label htmlFor="confirm" className="block text-sm font-medium mb-1">Confirm password</label>
-            <input
+          <div className="space-y-1">
+            <label htmlFor="confirm" className="block text-sm font-medium">Confirm password</label>
+            <Input
               id="confirm"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
               disabled={loading}
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full h-9 bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-50"
+            className="w-full"
           >
             {loading ? "Creating account..." : "Create account"}
-          </button>
+          </Button>
         </form>
 
         <div className="my-4 flex items-center gap-3">
@@ -157,14 +161,15 @@ export default function SignupPage() {
           <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-800" />
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={handleGoogle}
           disabled={loading}
-          className="w-full h-9 border border-neutral-300 dark:border-neutral-700 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-900 disabled:opacity-50"
+          className="w-full"
         >
           Continue with Google
-        </button>
+        </Button>
 
         <p className="mt-6 text-center text-xs text-neutral-500">
           Already have an account?{" "}

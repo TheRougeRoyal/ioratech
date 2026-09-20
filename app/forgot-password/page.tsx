@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { resetPassword } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
@@ -21,12 +24,14 @@ export default function ForgotPasswordPage() {
     try {
       await resetPassword(email);
       setSuccess(true);
+      toast.success("Reset link sent to your email!");
     } catch (err: any) {
       const msg =
         err?.code === "auth/user-not-found"
           ? "No account found with this email"
           : "Failed to send reset email. Please try again.";
       setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -38,7 +43,7 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-sm text-center">
           <h1 className="text-xl font-semibold mb-2">Check your email</h1>
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
-            A reset link has been sent to <strong>{email}</strong>.
+            A reset link has been sent to <strong className="text-neutral-900 dark:text-neutral-50">{email}</strong>.
           </p>
           <Link href="/login" className="text-sm font-medium hover:underline">
             Back to login
@@ -67,26 +72,25 @@ export default function ForgotPasswordPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
-            <input
+          <div className="space-y-1">
+            <label htmlFor="email" className="block text-sm font-medium">Email</label>
+            <Input
               id="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
-              className="w-full h-9 px-3 border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-50"
               disabled={loading}
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full h-9 bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-50"
+            className="w-full"
           >
             {loading ? "Sending..." : "Send reset link"}
-          </button>
+          </Button>
         </form>
 
         <p className="mt-6 text-center text-xs text-neutral-500">
