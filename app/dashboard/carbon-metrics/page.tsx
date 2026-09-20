@@ -41,7 +41,7 @@ const MOCK = [
   { id: "e9", scope: "Scope 3", category: "Upstream Transport", value: 312.0, unit: "tCO2e", period: "2025-Q3" },
 ];
 
-function ScopeIcon({ scope, className = "h-3.5 w-3.5" }) {
+function ScopeIcon({ scope, className = "h-3.5 w-3.5" }: { scope: string; className?: string }) {
   if (scope === "Scope 1") return <Flame className={className} />;
   if (scope === "Scope 2") return <Factory className={className} />;
   if (scope === "Scope 3") return <Cloud className={className} />;
