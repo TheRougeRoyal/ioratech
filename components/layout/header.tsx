@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Leaf, Sun, Moon, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -44,31 +45,6 @@ export function Header() {
           <Link href="/product" className="hover:text-foreground transition-colors">Product</Link>
           <Link href="/docs" className="hover:text-foreground transition-colors">Docs</Link>
         </nav>
-import { Button } from "@/components/ui/button";
-
-// ... (ThemeToggle implementation)
-
-export function Header() {
-  return (
-    <header className="border-b border-border sticky top-0 z-50 bg-background/80 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-lg group-hover:scale-105 transition-transform">
-            <Leaf className="h-5 w-5" />
-          </div>
-          <div className="flex flex-col leading-none">
-            <span className="text-lg font-bold tracking-tight">IORA</span>
-            <span className="text-[10px] tracking-widest uppercase font-bold text-muted-foreground mt-0.5">
-              Climate Intelligence
-            </span>
-          </div>
-        </Link>
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-          <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-          <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
-          <Link href="/product" className="hover:text-foreground transition-colors">Product</Link>
-          <Link href="/docs" className="hover:text-foreground transition-colors">Docs</Link>
-        </nav>
         <div className="flex items-center gap-3">
           <ThemeToggle />
           <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex gap-1.5">
@@ -77,14 +53,10 @@ export function Header() {
               Sign in
             </Link>
           </Button>
-          <Button size="sm" rounded="full" asChild>
+          <Button size="sm" asChild>
             <Link href="/signup">Get started</Link>
           </Button>
         </div>
-      </div>
-    </header>
-  );
-}
       </div>
     </header>
   );
