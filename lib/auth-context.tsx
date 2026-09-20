@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [isDemo, setIsDemo] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -139,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, isDemo, getIdToken, startDemo, signOut }}>
+    <AuthContext.Provider value={{ user, loading, error, isDemo, getIdToken, startDemo, signOut }}>
       {children}
     </AuthContext.Provider>
   );

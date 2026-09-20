@@ -38,7 +38,7 @@ const MOCK = [
   { id: "r8", category: "Market Shift", risk_type: "Transition", score: 48, trend: "decreasing", description: "Demand shift to low-carbon products" },
 ];
 
-function Metric({ label, value, sub }) {
+function Metric({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
     <div className="border border-neutral-200 dark:border-neutral-800 p-3">
       <p className="text-xs text-neutral-500 dark:text-neutral-400">{label}</p>
@@ -48,7 +48,7 @@ function Metric({ label, value, sub }) {
   );
 }
 
-function RiskRow({ r }) {
+function RiskRow({ r }: { r: any }) {
   const TrendIcon = r.trend === "increasing" ? TrendingUp : r.trend === "decreasing" ? TrendingDown : null;
   return (
     <div className="space-y-1">
@@ -134,7 +134,7 @@ export default function RiskAnalysisPage() {
 
   const physical = risks.filter((r) => r.risk_type === "Physical");
   const transition = risks.filter((r) => r.risk_type === "Transition");
-  const avg = (arr) => (arr.length ? Math.round(arr.reduce((s, r) => s + r.score, 0) / arr.length) : 0);
+  const avg = (arr: any[]) => (arr.length ? Math.round(arr.reduce((s, r) => s + r.score, 0) / arr.length) : 0);
   const overall = avg(risks);
   const dist = [
     { name: "Physical", value: physical.length || 0 },

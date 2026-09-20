@@ -21,7 +21,7 @@ import { toast } from "sonner";
 const COLORS = ["#10b981", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6", "#ec4899"];
 
 const SCOPES = ["Scope 1", "Scope 2", "Scope 3"];
-const CATEGORIES = {
+const CATEGORIES: Record<string, string[]> = {
   "Scope 1": ["Stationary Combustion", "Mobile Combustion", "Fugitive Emissions", "Process Emissions"],
   "Scope 2": ["Purchased Electricity", "Purchased Steam", "Purchased Heat", "Purchased Cooling"],
   "Scope 3": ["Purchased Goods", "Capital Goods", "Fuel & Energy", "Upstream Transport", "Waste", "Business Travel", "Employee Commute", "Downstream Transport"],

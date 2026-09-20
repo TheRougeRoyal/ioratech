@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 
 /* ─── helpers ─────────────────────────────────────────────── */
 
-function initials(name, email) {
+function initials(name: string | undefined, email: string | null | undefined) {
   if (name) {
     const parts = name.trim().split(/\s+/);
     return parts.length >= 2
@@ -17,7 +17,7 @@ function initials(name, email) {
   return email ? email[0].toUpperCase() : "?";
 }
 
-function Toggle({ checked, onChange, id }) {
+function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (v: boolean) => void; id: string }) {
   return (
     <button
       type="button"
@@ -40,7 +40,7 @@ function Toggle({ checked, onChange, id }) {
   );
 }
 
-function SectionHeading({ children }) {
+function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="text-sm font-semibold px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-50">
       {children}
@@ -48,7 +48,7 @@ function SectionHeading({ children }) {
   );
 }
 
-function SettingsRow({ label, hint, children }) {
+function SettingsRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="p-4 flex items-center justify-between gap-4">
       <div className="min-w-0">
@@ -80,7 +80,7 @@ export default function SettingsPage() {
     setDraftName(n);
   }, [user]);
 
-  function handleSaveName(e) {
+  function handleSaveName(e: React.FormEvent) {
     e.preventDefault();
     setSavedName(draftName.trim() || savedName);
     setEditingName(false);
@@ -100,7 +100,7 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState(false);
 
-  function handlePasswordSubmit(e) {
+  function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPwError("");
     setPwSuccess(false);
@@ -115,13 +115,13 @@ export default function SettingsPage() {
   }
 
   /* Notifications */
-  const [notifs, setNotifs] = useState({
+  const [notifs, setNotifs] = useState<Record<string, boolean>>({
     weeklyDigest: true,
     riskAlerts: true,
     reportReady: false,
   });
 
-  function toggleNotif(key) {
+  function toggleNotif(key: string) {
     setNotifs((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 

@@ -58,10 +58,10 @@ export default function RequestAccessPage() {
     referralSource: "",
   });
 
-  const set = (field) => (e) =>
+  const set = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));

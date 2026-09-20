@@ -62,7 +62,7 @@ function greeting() {
   return "Good evening";
 }
 
-function Sparkline({ data, color = "#10b981" }) {
+function Sparkline({ data, color = "#10b981" }: { data: any[]; color?: string }) {
   return (
     <ResponsiveContainer width="100%" height={36}>
       <AreaChart data={data} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
   const [risks] = useState(MOCK_RISKS);
   const [loading] = useState(false);
 
-  const sum = (arr) => arr.reduce((s, e) => s + (Number(e.value) || 0), 0);
+  const sum = (arr: any[]) => arr.reduce((s, e) => s + (Number(e.value) || 0), 0);
   const totalEmissions = sum(emissions);
   const ytd = emissions.filter((e) => (e.period || "").startsWith("2025-")).reduce((s, e) => s + (Number(e.value) || 0), 0);
   const lastMonth = emissions.filter((e) => e.period === "2025-08").reduce((s, e) => s + (Number(e.value) || 0), 0);

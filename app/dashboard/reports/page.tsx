@@ -29,7 +29,7 @@ function Skeleton() {
   return <div className="h-3 w-32 bg-neutral-200 dark:bg-neutral-800 animate-pulse" />;
 }
 
-function statusClasses(s) {
+function statusClasses(s: string) {
   if (s === "published") return "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800";
   if (s === "in-review") return "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800";
   return "text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800";
@@ -42,7 +42,7 @@ export default function ReportsPage() {
   const [tab, setTab] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [draft, setDraft] = useState({ name: "", type: "", frameworks: [] });
+  const [draft, setDraft] = useState<{ name: string; type: string; frameworks: string[] }>({ name: "", type: "", frameworks: [] });
 
   // ponytail: block API calls for demo mode to ensure the page loads instantly.
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function ReportsPage() {
     finally { setSaving(false); }
   };
 
-  const toggleFw = (fw) => setDraft((p) => ({
+  const toggleFw = (fw: string) => setDraft((p) => ({
     ...p, frameworks: p.frameworks.includes(fw) ? p.frameworks.filter((f) => f !== fw) : [...p.frameworks, fw],
   }));
 

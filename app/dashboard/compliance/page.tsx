@@ -156,7 +156,7 @@ const GAP_ANALYSIS = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function statusStyles(status) {
+function statusStyles(status: string) {
   switch (status) {
     case "Aligned":
       return {
@@ -182,7 +182,7 @@ function statusStyles(status) {
   }
 }
 
-function priorityStyles(priority) {
+function priorityStyles(priority: string) {
   switch (priority) {
     case "High":
       return "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800";
@@ -195,7 +195,7 @@ function priorityStyles(priority) {
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function SummaryBar({ frameworks }) {
+function SummaryBar({ frameworks }: { frameworks: any[] }) {
   const aligned = frameworks.filter((f) => f.status === "Aligned").length;
   const inProgress = frameworks.filter((f) => f.status === "In Progress").length;
   const notStarted = frameworks.filter((f) => f.status === "Not Started").length;
@@ -233,7 +233,7 @@ function SummaryBar({ frameworks }) {
   );
 }
 
-function RequirementItem({ req }) {
+function RequirementItem({ req }: { req: any }) {
   return (
     <div className="flex items-start gap-3 py-2.5">
       {req.done ? (
@@ -254,10 +254,10 @@ function RequirementItem({ req }) {
   );
 }
 
-function FrameworkCard({ framework }) {
+function FrameworkCard({ framework }: { framework: any }) {
   const [open, setOpen] = useState(false);
   const styles = statusStyles(framework.status);
-  const doneCount = framework.requirements.filter((r) => r.done).length;
+  const doneCount = framework.requirements.filter((r: any) => r.done).length;
   const totalCount = framework.requirements.length;
 
   return (
@@ -327,7 +327,7 @@ function FrameworkCard({ framework }) {
       {/* Expandable requirements */}
       {open && (
         <div className="border-t border-neutral-200 dark:border-neutral-800 px-4 sm:px-5 divide-y divide-neutral-100 dark:divide-neutral-800/70">
-          {framework.requirements.map((req) => (
+          {framework.requirements.map((req: any) => (
             <RequirementItem key={req.id} req={req} />
           ))}
         </div>
@@ -336,7 +336,7 @@ function FrameworkCard({ framework }) {
   );
 }
 
-function GapCard({ gap, index }) {
+function GapCard({ gap, index }: { gap: any; index: number }) {
   return (
     <div className="p-4 sm:p-5 flex gap-4">
       {/* Index circle */}
@@ -473,7 +473,7 @@ export default function CompliancePage() {
 }
 
 // Wrapper to support expand-all toggle via key reset trick
-function FrameworkGrid({ frameworks, expandAll }) {
+function FrameworkGrid({ frameworks, expandAll }: { frameworks: any[]; expandAll: boolean }) {
   return (
     <div className="space-y-3">
       {frameworks.map((fw) => (
@@ -483,11 +483,11 @@ function FrameworkGrid({ frameworks, expandAll }) {
   );
 }
 
-function FrameworkCardControlled({ framework, forceOpen }) {
+function FrameworkCardControlled({ framework, forceOpen }: { framework: any; forceOpen: boolean }) {
   const [localOpen, setLocalOpen] = useState(false);
   const open = forceOpen || localOpen;
   const styles = statusStyles(framework.status);
-  const doneCount = framework.requirements.filter((r) => r.done).length;
+  const doneCount = framework.requirements.filter((r: any) => r.done).length;
   const totalCount = framework.requirements.length;
 
   return (
@@ -558,7 +558,7 @@ function FrameworkCardControlled({ framework, forceOpen }) {
       {/* Requirements list */}
       {open && (
         <div className="border-t border-neutral-200 dark:border-neutral-800 px-4 sm:px-5 divide-y divide-neutral-100 dark:divide-neutral-800/70">
-          {framework.requirements.map((req) => (
+          {framework.requirements.map((req: any) => (
             <RequirementItem key={req.id} req={req} />
           ))}
         </div>

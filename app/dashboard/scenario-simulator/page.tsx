@@ -36,7 +36,7 @@ const MOCK = [
   { id: "s3", category: "Delayed Transition", score: 68, description: JSON.stringify({ carbonPrice: 45, regulationIntensity: 30, transitionSpeed: "slow", physicalRiskScenario: "rcp85" }) },
 ];
 
-function Slider({ value, onChange, min, max, step }) {
+function Slider({ value, onChange, min, max, step }: { value: number[]; onChange: (v: number[]) => void; min: number; max: number; step: number }) {
   return (
     <input
       type="range"
@@ -50,7 +50,7 @@ function Slider({ value, onChange, min, max, step }) {
   );
 }
 
-function Metric({ label, value, tone }) {
+function Metric({ label, value, tone }: { label: string; value: React.ReactNode; tone?: string }) {
   return (
     <div className="border border-neutral-200 dark:border-neutral-800 p-4 text-center">
       <p className="text-xs text-neutral-500 dark:text-neutral-400">{label}</p>
@@ -132,7 +132,7 @@ export default function ScenarioSimulatorPage() {
     setPhysicalScenario("rcp45");
   };
 
-  const loadScenario = (s) => {
+  const loadScenario = (s: any) => {
     if (!s.description) return;
     try {
       const p = JSON.parse(s.description);
