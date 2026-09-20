@@ -111,8 +111,8 @@ export default function CarbonMetricsPage() {
     } catch (e) { console.error(e); toast.error("Failed to delete"); }
   };
 
-  const sum = (arr) => arr.reduce((s, e) => s + (Number(e.value) || 0), 0);
-  const byScope = (s) => emissions.filter((e) => e.scope === s);
+  const sum = (arr: any[]) => arr.reduce((s, e) => s + (Number(e.value) || 0), 0);
+  const byScope = (s: string) => emissions.filter((e) => e.scope === s);
   const total = sum(emissions);
   const s1 = sum(byScope("Scope 1"));
   const s2 = sum(byScope("Scope 2"));
