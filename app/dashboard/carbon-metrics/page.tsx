@@ -124,7 +124,7 @@ export default function CarbonMetricsPage() {
     { name: "Scope 3", value: Math.round(s3) },
   ];
 
-  const categoryTotals = emissions.reduce((acc, e) => {
+  const categoryTotals = emissions.reduce((acc: Record<string, number>, e) => {
     acc[e.category] = (acc[e.category] || 0) + (Number(e.value) || 0);
     return acc;
   }, {});
