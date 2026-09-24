@@ -9,8 +9,11 @@ export default function DemoPage() {
   const router = useRouter();
 
   useEffect(() => {
-    startDemo();
-    router.push("/dashboard");
+    const initializeDemo = async () => {
+      await startDemo();
+      router.push("/dashboard");
+    };
+    initializeDemo();
   }, [startDemo, router]);
 
   return (

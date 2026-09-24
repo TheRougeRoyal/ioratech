@@ -129,11 +129,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const startDemo = () => {
+  const startDemo = async () => {
     sessionStorage.setItem(DEMO_STORAGE_KEY, "demo");
     setIsDemo(true);
     setUser(buildDemoUser());
     setLoading(false);
+    // Return a promise that resolves on the next tick to ensure state is committed
+    return new Promise((resolve) => setTimeout(resolve, 0));
   };
 
   const signOut = async () => {
