@@ -79,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedMode === "demo") {
       setIsDemo(true);
       setUser(buildDemoUser());
+      setLoading(false);
     }
 
     const unsubscribe = onAuthChange(
