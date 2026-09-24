@@ -164,10 +164,12 @@ export default function DashboardPage() {
             </div>
             <Button
               type="button"
-              onClick={() => {}}
               className="inline-flex items-center gap-1.5 h-9 px-4"
+              asChild
             >
-              <Plus className="h-4 w-4" />Record emission
+              <Link href="/dashboard/carbon-metrics">
+                <Plus className="h-4 w-4" />Record emission
+              </Link>
             </Button>
           </div>
 
