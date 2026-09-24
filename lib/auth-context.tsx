@@ -107,12 +107,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (loading) return;
     const isAuthPage = AUTH_PATHS.some((p) => pathname.startsWith(p));
     const isDashboard = pathname.startsWith("/dashboard");
-    if (!user && isDashboard) {
+
+    // Only redirect to login if we are absolutely sure we have no user AND no demo session
+    if (!user && !isDemo && isDashboard) {
       router.push("/login");
-    } else if (user && isAuthPage) {
+    } else if ((user || isDemo) && isAuthPage) {
       router.push("/dashboard");
     }
-  }, [user, loading, pathname, router]);
+  }, [user, loading, pathname, router, isDemo]);
 
   const getIdToken = async (): Promise<string | null> => {
     if (!user) return null;

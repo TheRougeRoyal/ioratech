@@ -57,8 +57,10 @@ export default function HomePage() {
   const { startDemo } = useAuth();
   const router = useRouter();
 
-  const enterDemo = () => {
+  const enterDemo = async () => {
     startDemo();
+    // Small delay to ensure AuthContext state updates before the guard hits
+    await new Promise(resolve => setTimeout(resolve, 100));
     router.push("/dashboard");
   };
 
