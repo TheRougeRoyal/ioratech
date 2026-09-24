@@ -87,13 +87,15 @@ export default function HomePage() {
               <div className="flex flex-col items-stretch gap-3 pt-2 sm:flex-row sm:items-center">
                 <Button
                   type="button"
-                  onClick={enterDemo}
                   size="lg"
                   className="group gap-2"
+                  asChild
                 >
-                  <Play className="h-4 w-4 fill-current" />
-                  Explore the demo now
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  <Link href="/demo">
+                    <Play className="h-4 w-4 fill-current" />
+                    Explore the demo now
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
                 </Button>
                 <Button
                   type="button"
