@@ -1,6 +1,6 @@
 # Iora Technology Platform
 
-ESG metrics, compliance tracking, risk analysis, and scenario simulation platform with an integrated ML service.
+ESG metrics, compliance tracking, and risk analysis platform.
 
 ## Tech Stack
 
@@ -10,8 +10,7 @@ ESG metrics, compliance tracking, risk analysis, and scenario simulation platfor
 - **UI**: Tailwind CSS + Radix UI + shadcn/ui
 - **Charts**: Recharts
 - **Animations**: Framer Motion
-- **ML Service**: FastAPI (Python 3.11) on Render
-- **Deployment**: Vercel (frontend) + Render (ML service)
+- **Deployment**: Vercel (frontend)
 
 ## Getting Started
 
@@ -51,9 +50,6 @@ RATE_LIMIT_API_PER_MINUTE=60
 
 # CORS
 CORS_ORIGINS=
-
-# ML Service (optional)
-NEXT_PUBLIC_ML_API=https://iora-ml.onrender.com
 ```
 
 ### Local Development
@@ -71,7 +67,7 @@ Visit [http://localhost:3000](http://localhost:3000).
 npm run build
 ```
 
-## Deployment
+### Deployment
 
 ### Frontend (Vercel)
 
@@ -80,38 +76,16 @@ npm run build
 3. Add environment variables in project settings
 4. Deploy
 
-### ML Service (Render)
-
-| Field    | Value                    |
-|----------|--------------------------|
-| Runtime  | Python 3.11              |
-| Build    | `cd ml && pip install -r requirements.txt` |
-| Start    | `cd ml && uvicorn main:app --host 0.0.0.0 --port $PORT` |
-
-After deploy, set `NEXT_PUBLIC_ML_API` in Vercel and redeploy.
-
-Verify: `curl https://iora-ml.onrender.com/ml/health`
-
 ## Features
 
 - **Landing page**: Hero, capabilities, how it works, industries, pricing, contact
-- **Dashboard**: Carbon metrics, compliance, risk analysis, scenario simulator, reports
+- **Dashboard**: Carbon metrics, compliance, risk analysis, reports
 - **Authentication**: Firebase auth with signup, login, password reset
 - **API keys**: Create, list, validate, revoke
 - **Role-based access**: Owner, admin, member, viewer
 - **Team management**: Invite, manage, and remove team members
 - **Rate limiting**
 - **Footer pages**: About, contact, blog, docs, API docs, status, security, DPA, privacy, terms, careers
-
-## ML API Endpoints
-
-| Method | Endpoint               | Description                          |
-|--------|------------------------|--------------------------------------|
-| GET    | `/ml/health`           | Health check                         |
-| POST   | `/ml/forecast`         | Time-series forecasting              |
-| POST   | `/ml/risk-score`       | ESG risk scoring                     |
-| POST   | `/ml/anomaly-detect`   | Anomaly detection                    |
-| POST   | `/ml/compliance-analyze` | Compliance analysis                |
 
 ## API Routes
 

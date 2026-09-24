@@ -7,7 +7,7 @@ import React, { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "Iora - Climate Intelligence",
-  description: "Enterprise-grade carbon analytics and climate risk forecasting",
+  description: "Enterprise-grade carbon analytics and climate risk analysis",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

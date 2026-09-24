@@ -32,11 +32,6 @@ export default function ApiDocsPage() {
                   <span className="text-xs text-muted-foreground">List emissions data</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-500">GET</span>
-                  <code className="text-xs font-mono">/api/v1/risk-scores</code>
-                  <span className="text-xs text-muted-foreground">Get risk assessments</span>
-                </div>
-                <div className="flex items-center gap-3">
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/10 text-blue-500">POST</span>
                   <code className="text-xs font-mono">/api/v1/scenarios</code>
                   <span className="text-xs text-muted-foreground">Run scenario simulation</span>
