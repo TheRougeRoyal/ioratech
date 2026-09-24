@@ -99,7 +99,7 @@ export default function HomePage() {
                   size="lg"
                   asChild
                 >
-                  <Link href="/contact">Talk to our team</Link>
+                  <Link href="/login">Sign in</Link>
                 </Button>
               </div>
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -196,9 +196,12 @@ export default function HomePage() {
               type="button"
               size="lg"
               className="gap-2"
+              asChild
             >
-              Start a conversation
-              <ArrowRight className="h-4 w-4" />
+              <Link href="/contact">
+                Start a conversation
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </section>
