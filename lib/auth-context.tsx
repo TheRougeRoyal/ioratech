@@ -132,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem(DEMO_STORAGE_KEY, "demo");
     setIsDemo(true);
     setUser(buildDemoUser());
+    setLoading(false);
   };
 
   const signOut = async () => {
